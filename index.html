@@ -1,1 +1,704 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Junior Chef: Confectionary Line</title>
+    <!-- Load Tailwind CSS for utility classes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Base styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7e6e6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        #app-container {
+            width: 100%;
+            max-width: 450px; /* Mobile vertical view */
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        /* Style for all game screens/views */
+        .game-screen {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
 
+        /* Intro Screen Specific Styles */
+        #intro-screen {
+            background-color: #000000;
+            justify-content: space-between; 
+            padding-top: 10vh; 
+        }
+        .intro-main-text {
+            font-family: 'Inter', sans-serif;
+            font-weight: 900;
+            font-size: 3.5rem; 
+            line-height: 1; 
+            color: #ffffff; 
+            letter-spacing: 0.05em;
+            margin: 0; 
+            padding: 0;
+            text-align: center; 
+        }
+        .intro-sub-text {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #ffffff; 
+            margin: 0; 
+            padding: 0;
+            line-height: 1; 
+            margin-top: -5px; 
+            position: relative;
+            left: 5px; 
+        }
+        .intro-container {
+            flex-grow: 1; 
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; 
+            align-items: center; 
+            padding-top: 20vh; 
+        }
+        #splashMessage {
+             margin-top: 15vh;
+             visibility: hidden;
+        }
+        .copyright-text {
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        /* Main Menu Styles */
+        #main-menu-screen img {
+             width: 150px;
+             height: 150px;
+             margin-bottom: 10px;
+        }
+        .main-title {
+             font-size: 4rem;
+             font-weight: 900;
+             letter-spacing: -2px;
+             line-height: 1;
+             text-shadow: 2px 2px #ec4899; /* Pink shadow for effect */
+             margin-bottom: 3rem;
+        }
+
+        /* Button Style */
+        .menu-button {
+            padding: 1rem 3rem;
+            margin: 0.75rem 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border-radius: 9999px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.15s ease-in-out;
+        }
+        .menu-button:hover {
+            transform: scale(1.05);
+        }
+
+        /* Game Screen Styles */
+        #game-view {
+            display: flex;
+            flex-direction: column;
+            background-color: #f0f0f0; 
+            justify-content: flex-start;
+        }
+        #gameCanvas {
+            background-color: #f7f7f7;
+            touch-action: manipulation;
+            flex-grow: 1;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+
+    <!-- 1. INTRO SCREEN (Asonik Studios - Splash) -->
+    <div id="intro-screen" class="game-screen text-white">
+        
+        <div class="intro-container">
+            <h1 id="splashTitle" class="intro-main-text">Asonik Studios</h1>
+            <p id="splashSubtitle" class="intro-sub-text">представляет</p>
+            <p id="splashMessage" class="text-gray-400 mt-4 text-sm mb-8">Загрузка ресурсов...</p>
+        </div>
+        
+        <p class="copyright-text">2025©</p>
+    </div>
+
+    <!-- 2. MAIN MENU SCREEN -->
+    <div id="main-menu-screen" class="game-screen bg-pink-100 p-8">
+        <!-- ЛОГОТИП: ВРЕМЕННАЯ ЗАГЛУШКА. Вставьте сюда вашу ссылку с ImgBB! -->
+        <img src="https://placehold.co/150x150/FFC0CB/000000?text=CAKE+LOGO" 
+             alt="Cake Logo" 
+             class="rounded-full shadow-xl mb-6">
+        
+        <!-- Слитный заголовок JuniorChef -->
+        <h1 class="main-title font-black text-pink-600 text-center">JuniorChef</h1>
+        
+        <button id="playButton" class="menu-button bg-green-500 text-white hover:bg-green-600">
+            ИГРАТЬ
+        </button>
+        <button id="settingsButton" class="menu-button bg-blue-500 text-white hover:bg-blue-600 opacity-50 cursor-not-allowed">
+            НАСТРОЙКИ
+        </button>
+        <div class="mt-8 p-4 bg-white rounded-lg shadow-md text-sm text-gray-700">
+            <p>Ваш ID: <span id="displayUserId" class="font-mono text-xs text-gray-500">Загрузка...</span></p>
+        </div>
+    </div>
+
+    <!-- 3. GAME VIEW (Контейнер с игрой) -->
+    <div id="game-view" class="game-screen">
+        <!-- Score & Order Header -->
+        <div class="w-full bg-yellow-400 text-gray-800 p-2 shadow-md flex justify-between items-center sticky top-0 z-10">
+            <div class="text-sm font-semibold">СЧЕТ: <span id="scoreDisplay" class="text-lg font-extrabold">0</span></div>
+            <div class="text-sm font-semibold">ПРОГРЕСС: <span id="orderProgress" class="text-lg font-extrabold text-red-600">0 / 0</span></div>
+        </div>
+        
+        <!-- Order Display (Visible above canvas) -->
+        <div id="currentOrderDisplay" class="w-full bg-orange-200 p-2 text-center text-sm font-bold text-gray-700">
+            Требуемый торт:
+        </div>
+
+        <!-- Canvas for the conveyor belt and cake -->
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <!-- 4. GAME OVER SCREEN (Пустой контейнер) -->
+    <div id="game-over-screen" class="game-screen bg-pink-100 p-8">
+        <h1 class="text-5xl font-black text-red-600 mb-4 text-center">ИГРА ОКОНЧЕНА</h1>
+        <p class="text-2xl font-bold mb-6">Финальный счет: <span id="finalScoreDisplay" class="text-red-600">0</span></p>
+        
+        <button id="restartButton" class="menu-button bg-green-500 text-white hover:bg-green-600">
+            ИГРАТЬ СНОВА
+        </button>
+        <button id="toMenuButton" class="menu-button bg-blue-500 text-white hover:bg-blue-600">
+            ГЛАВНОЕ МЕНЮ
+        </button>
+
+        <div class="mt-8 text-center text-gray-600">
+             <p>Таблица рекордов (скоро)</p>
+        </div>
+    </div>
+
+</div>
+
+<!-- Game Script -->
+<script type="module">
+    // ===============================================
+    // 1. FIREBASE SETUP (DISABLED FOR STABILITY)
+    // ===============================================
+    
+    // Включение Firebase только при необходимости для рекордов.
+    // Пока что используем заглушки для совместимости с кодом.
+    let userId = null;
+    let isAuthReady = true; 
+
+    // ===============================================
+    // 2. SCREEN MANAGEMENT
+    // ===============================================
+
+    const screens = {
+        intro: document.getElementById('intro-screen'),
+        menu: document.getElementById('main-menu-screen'),
+        game: document.getElementById('game-view'),
+        gameOver: document.getElementById('game-over-screen')
+    };
+    let currentScreen = 'intro';
+
+    function showScreen(name) {
+        Object.keys(screens).forEach(key => {
+            screens[key].style.display = key === name ? 'flex' : 'none';
+        });
+        currentScreen = name;
+        
+        // Запускаем/останавливаем логику игры
+        if (name === 'game') {
+            if (!isGameRunning) {
+               startGame();
+            }
+        } else if (isGameRunning) {
+             isGameRunning = false;
+        }
+        
+        if (name === 'game') {
+             resizeCanvas();
+        }
+    }
+    
+    let isTransitioning = false; 
+    let assetsLoaded = false; 
+
+    function startSplashTransition() {
+        if (isTransitioning || !assetsLoaded) return;
+        
+        isTransitioning = true;
+        
+        screens.intro.removeEventListener('click', startSplashTransition);
+        document.removeEventListener('keydown', handleSplashKeydown);
+        
+        // Показываем, что заставка "запустилась"
+        document.getElementById('splashMessage').textContent = 'Студия Asonik представляет...';
+        document.getElementById('splashMessage').style.visibility = 'hidden'; 
+
+        // Автоматический переход в меню через 3 секунды
+        setTimeout(() => {
+            showScreen('menu'); 
+            isTransitioning = false;
+        }, 3000); 
+    }
+    
+    function handleSplashKeydown(e) {
+        if (currentScreen === 'intro' && (e.code === 'Space' || e.key === 'Enter')) {
+             startSplashTransition();
+        }
+    }
+
+    // --- ASSET LOADING (Simplified to just check auth status) ---
+    function loadAssets() {
+        // Имитация загрузки ресурсов
+        const INGREDIENT_TYPES = ['база', 'ваниль', 'шоколад', 'глазурь', 'вишня'];
+        const totalAssets = INGREDIENT_TYPES.length;
+        const introMessage = document.getElementById('splashMessage');
+
+        // Имитация загрузки
+        let loadedCount = 0;
+        const interval = setInterval(() => {
+            loadedCount++;
+            introMessage.textContent = `Загрузка ресурсов: ${loadedCount}/${totalAssets}`;
+            if (loadedCount >= totalAssets) {
+                clearInterval(interval);
+                assetsLoaded = true;
+                // После загрузки меняем сообщение и активируем слушатели для перехода
+                introMessage.textContent = 'Нажмите, чтобы начать...'; 
+                introMessage.style.visibility = 'visible';
+                
+                // Активируем слушатели для перехода в меню
+                screens.intro.addEventListener('click', startSplashTransition);
+                document.addEventListener('keydown', handleSplashKeydown);
+            }
+        }, 100);
+    }
+
+    // Menu to Game
+    document.getElementById('playButton').addEventListener('click', () => {
+        showScreen('game');
+    });
+
+    // Game Over to Menu
+    document.getElementById('toMenuButton').addEventListener('click', () => {
+        showScreen('menu');
+    });
+
+    // Game Over to Game
+    document.getElementById('restartButton').addEventListener('click', () => {
+        showScreen('game');
+    });
+    
+    // Settings (Placeholder)
+    document.getElementById('settingsButton').addEventListener('click', () => {
+        console.log("Settings not implemented yet.");
+    });
+
+
+    // ===============================================
+    // 3. GAME LOGIC (Conveyor Line) - ВОССТАНОВЛЕНА
+    // ===============================================
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const orderProgressDisplay = document.getElementById('orderProgress');
+    const currentOrderDisplay = document.getElementById('currentOrderDisplay');
+    const finalScoreDisplay = document.getElementById('finalScoreDisplay');
+
+    // Game state variables
+    let score = 0;
+    let gameLoopRef = null;
+    let isGameRunning = false;
+
+    let currentCake = []; 
+    let targetOrder = []; 
+    let ingredientsOnBelt = []; 
+    let currentOrderStep = 0; 
+
+    // Constants
+    const BLOCK_HEIGHT = 40;
+    const BLOCK_WIDTH = 80;
+    let BELT_SPEED = 1.5; // Начальная скорость конвейера
+    
+    // Позиции
+    let CONVEYOR_Y = 0; 
+    let DROP_ZONE_X = 0; 
+    let CAKE_BASE_Y = 0;
+    const CAKE_BASE_CENTER_X_OFFSET = -20; 
+
+    // Типы ингредиентов (Цветной режим)
+    const INGREDIENTS = {
+        'база': { 
+            display: 'КОРЖ', 
+            color: '#8B4513', 
+            img: { isFallback: true, color: '#8B4513' }
+        },
+        'ваниль': { 
+            display: 'ВАНИЛЬ', 
+            color: '#FFF8DC', 
+            img: { isFallback: true, color: '#FFF8DC' }
+        },
+        'шоколад': { 
+            display: 'ШОКОЛАД', 
+            color: '#A0522D', 
+            img: { isFallback: true, color: '#A0522D' }
+        },
+        'глазурь': { 
+            display: 'ГЛАЗУРЬ', 
+            color: '#ADD8E6', 
+            img: { isFallback: true, color: '#ADD8E6' }
+        },
+        'вишня': { 
+            display: 'ВИШНЯ', 
+            color: '#DC143C', 
+            img: { isFallback: true, color: '#DC143C' }
+        }
+    };
+    const INGREDIENT_TYPES = Object.keys(INGREDIENTS);
+    let lastIngredientSpawnTime = 0;
+    const SPAWN_INTERVAL = 2000; 
+
+    
+    // Adjust canvas size dynamically
+    function resizeCanvas() {
+        // Убеждаемся, что мы на экране игры перед запросом элементов
+        if (currentScreen !== 'game') return;
+
+        const gameView = document.getElementById('game-view');
+        // Извлекаем высоту элементов, чтобы Canvas занял оставшееся место
+        const headerHeight = gameView.children[0].offsetHeight + gameView.children[1].offsetHeight;
+        canvas.width = gameView.clientWidth;
+        canvas.height = gameView.clientHeight - headerHeight;
+        
+        // Set key positions based on new height
+        CONVEYOR_Y = canvas.height - BLOCK_HEIGHT - 30; // Y position of the conveyor surface
+        DROP_ZONE_X = canvas.width * 0.7 + CAKE_BASE_CENTER_X_OFFSET; // Drop location (70% across)
+        CAKE_BASE_Y = canvas.height - 30; // Y position of the bottom of the cake stand area
+        
+        if (isGameRunning) {
+            draw();
+        }
+    }
+    window.addEventListener('resize', resizeCanvas);
+    
+
+    // --- GAME FLOW ---
+
+    function startGame() {
+        if (!assetsLoaded) {
+            console.error("Assets not loaded yet!");
+            return;
+        }
+        if (gameLoopRef) cancelAnimationFrame(gameLoopRef);
+        score = 0;
+        currentOrderStep = 0;
+        ingredientsOnBelt = [];
+        currentCake = [];
+        isGameRunning = true;
+        BELT_SPEED = 1.5;
+        
+        generateNewOrder();
+        resizeCanvas(); 
+        
+        gameLoopRef = requestAnimationFrame(gameLoop);
+    }
+    
+    function gameOver() {
+        isGameRunning = false;
+        if (gameLoopRef) cancelAnimationFrame(gameLoopRef);
+        
+        finalScoreDisplay.textContent = score;
+        showScreen('gameOver');
+    }
+
+    // --- ORDER MANAGEMENT ---
+
+    function generateNewOrder() {
+        // Order: Base + 2-4 random layers
+        targetOrder = ['база'];
+        const numLayers = 2 + Math.floor(Math.random() * 3); 
+        
+        for (let i = 0; i < numLayers; i++) {
+            let randomType;
+            do {
+                randomType = INGREDIENT_TYPES[1 + Math.floor(Math.random() * (INGREDIENT_TYPES.length - 1))];
+            } while (targetOrder.length > 1 && randomType === targetOrder[targetOrder.length - 1]); 
+            
+            targetOrder.push(randomType);
+        }
+        
+        currentOrderStep = 0;
+        currentCake = [];
+        updateOrderDisplay();
+        
+        // Увеличение сложности/скорости после выполнения заказа
+        BELT_SPEED = Math.min(BELT_SPEED + 0.1, 4);
+    }
+
+    function updateOrderDisplay() {
+        let text = 'Требуемый торт: ';
+        let progressHtml = '';
+        
+        targetOrder.forEach((type, index) => {
+            const isCurrent = index === currentOrderStep;
+            const status = index < currentOrderStep ? '✅' : isCurrent ? '🟡' : '⚫';
+            progressHtml += `<span class="px-1">${status}</span>`;
+            
+            const colorClass = index < currentOrderStep ? 'text-green-600' : (isCurrent ? 'text-red-600' : 'text-gray-700');
+            text += `<span class="${colorClass}">${INGREDIENTS[type].display}</span> `;
+            if (index < targetOrder.length - 1) text += '-> ';
+        });
+        
+        currentOrderDisplay.innerHTML = text; 
+        orderProgressDisplay.innerHTML = progressHtml;
+    }
+    
+    function completeOrder() {
+        score += targetOrder.length * 10; // Bonus points for completing a cake
+        generateNewOrder();
+    }
+
+    // --- INGREDIENT SPAWNING ---
+
+    function spawnIngredient(timestamp) {
+        // Уменьшаем интервал спауна с увеличением счета для сложности
+        const dynamicInterval = Math.max(1000, SPAWN_INTERVAL - score * 50);
+
+        if (timestamp - lastIngredientSpawnTime > dynamicInterval) {
+            // Randomly select type 
+            const typeIndex = Math.floor(Math.random() * (INGREDIENT_TYPES.length));
+            const randomType = INGREDIENT_TYPES[typeIndex];
+
+            ingredientsOnBelt.push({
+                type: randomType,
+                x: -BLOCK_WIDTH, 
+                y: CONVEYOR_Y,
+                width: BLOCK_WIDTH,
+                color: INGREDIENTS[randomType].color, // color is needed for fallback
+                isDropped: false
+            });
+            lastIngredientSpawnTime = timestamp;
+        }
+    }
+
+    // --- GAME INPUT (Drop action) ---
+
+    // Убеждаемся, что слушатель Canvas установлен корректно после загрузки
+    if (canvas) canvas.addEventListener('click', handleDrop);
+    
+    function handleDrop(event) {
+        if (!isGameRunning || currentScreen !== 'game') return;
+
+        // 1. Get click coordinates relative to the canvas
+        const rect = canvas.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const clickY = event.clientY - rect.top;
+
+        // 2. Find the ingredient that was clicked
+        let clickedIngredient = null;
+        for (const ing of ingredientsOnBelt) {
+            if (!ing.isDropped && 
+                clickX >= ing.x && 
+                clickX <= ing.x + BLOCK_WIDTH && 
+                clickY >= ing.y && 
+                clickY <= ing.y + BLOCK_HEIGHT) {
+                clickedIngredient = ing;
+                break;
+            }
+        }
+        
+        if (!clickedIngredient) return; // Ignore if no ingredient was clicked
+
+        const requiredType = targetOrder[currentOrderStep];
+        
+        // 3. The core logic: check if the type matches
+        if (clickedIngredient.type === requiredType) {
+            // SUCCESS: Correct ingredient dropped
+            
+            // Mark as dropped (it will be removed in the next update loop)
+            clickedIngredient.isDropped = true;
+
+            const newBlock = {
+                type: clickedIngredient.type,
+                width: BLOCK_WIDTH,
+            };
+            
+            currentCake.push(newBlock);
+            
+            currentOrderStep++;
+            score += 5; 
+            updateOrderDisplay();
+            
+            // Check if the order is complete
+            if (currentOrderStep === targetOrder.length) {
+                setTimeout(completeOrder, 500); // Small delay to visualize completion
+            }
+            
+        } else {
+            // FAILURE: Wrong ingredient dropped
+            gameOver();
+            console.log(`Wrong ingredient dropped! Needed: ${INGREDIENTS[requiredType].display}, Got: ${INGREDIENTS[clickedIngredient.type].display}`);
+        }
+    }
+
+
+    // --- DRAWING FUNCTIONS ---
+
+    function drawBlock(block, xPosition, yPosition) {
+        // Здесь мы используем только цветной режим
+        const asset = INGREDIENTS[block.type];
+
+        // Draw colored block
+        ctx.fillStyle = asset.color;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetY = 2;
+
+        ctx.fillRect(xPosition, yPosition, BLOCK_WIDTH, BLOCK_HEIGHT);
+        
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+        
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(xPosition, yPosition, BLOCK_WIDTH, BLOCK_HEIGHT);
+        
+        // Add text for prototype
+        ctx.fillStyle = '#333';
+        ctx.font = '10px Inter';
+        ctx.textAlign = 'center';
+        ctx.fillText(INGREDIENTS[block.type].display, xPosition + BLOCK_WIDTH / 2, yPosition + BLOCK_HEIGHT / 2 + 4);
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // 1. Draw Conveyor Belt 
+        ctx.fillStyle = '#654321'; // Darker brown
+        ctx.fillRect(0, CONVEYOR_Y + BLOCK_HEIGHT, canvas.width, 30);
+        
+        // 2. Draw Built Cake (fixed position near drop zone)
+        if (currentCake.length > 0) {
+            currentCake.forEach((block, index) => {
+                // Слои рисуются снизу вверх
+                const yPos = CAKE_BASE_Y - (currentCake.length - index) * BLOCK_HEIGHT;
+                const xPos = DROP_ZONE_X - BLOCK_WIDTH / 2;
+                drawBlock(block, xPos, yPos);
+            });
+        }
+        
+        // 3. Draw Ingredients on Belt
+        ingredientsOnBelt.forEach(ing => {
+            if (!ing.isDropped) {
+               drawBlock(ing, ing.x, CONVEYOR_Y);
+            }
+        });
+
+        // Update HTML score
+        scoreDisplay.textContent = score;
+    }
+
+    // --- GAME UPDATE ---
+
+    function update(timestamp) {
+        // Handle ingredient spawning
+        spawnIngredient(timestamp);
+        
+        // 1. Move ingredients on the belt
+        ingredientsOnBelt.forEach(ing => {
+            if (!ing.isDropped) {
+                ing.x += BELT_SPEED;
+            }
+        });
+
+        // 2. Remove ingredients that went off-screen (fail condition)
+        ingredientsOnBelt = ingredientsOnBelt.filter(ing => {
+            if (!ing.isDropped && ing.x > canvas.width) {
+                // FAILURE: Ingredient missed!
+                gameOver();
+                return false;
+            }
+            // Remove ingredients that were dropped (isDropped=true) AND are off-screen (cleanup)
+            return ing.x < canvas.width;
+        });
+    }
+
+    // --- GAME LOOP ---
+
+    function gameLoop(timestamp) {
+        if (!isGameRunning) return;
+        
+        update(timestamp);
+        draw();
+        
+        gameLoopRef = requestAnimationFrame(gameLoop);
+    }
+    
+    // Ensure the first screen is shown on load and start asset loading
+    window.onload = function () {
+        loadAssets(); // Start loading assets first
+        showScreen('intro');
+    }
+
+    // ===============================================
+    // 4. FIREBASE HIGH SCORE FUNCTIONS (Future step)
+    // ===============================================
+    /*
+    async function saveHighScore(finalScore) {
+        if (!isAuthReady || !userId) {
+            console.warn("Auth not ready or User ID missing. Cannot save score.");
+            return;
+        }
+
+        try {
+            await addDoc(collection(db, SCORES_COLLECTION_PATH), {
+                userId: userId,
+                score: finalScore,
+                timestamp: Date.now()
+            });
+            console.log("Score saved successfully!");
+        } catch (e) {
+            console.error("Error saving score: ", e);
+        }
+    }
+    */
+</script>
+</body>
+</html>
