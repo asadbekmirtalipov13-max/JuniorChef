@@ -29,7 +29,7 @@
             display: flex;
             flex-direction: column;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            border-radius: 12px;
+            border-radius: 1 lysates;
             overflow: hidden;
             position: relative;
         }
@@ -97,17 +97,22 @@
         }
 
         /* Main Menu Styles */
+        #main-menu-screen {
+            background-color: #fce7f3; /* Light pink background */
+        }
         #main-menu-screen img {
              width: 150px;
              height: 150px;
              margin-bottom: 10px;
+             filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2)); 
         }
         .main-title {
              font-size: 4rem;
              font-weight: 900;
-             letter-spacing: -2px;
+             letter-spacing: 0; 
              line-height: 1;
-             text-shadow: 2px 2px #ec4899; /* Pink shadow for effect */
+             color: #db2777; /* Розовый цвет */
+             text-shadow: none; 
              margin-bottom: 3rem;
         }
 
@@ -137,9 +142,51 @@
             touch-action: manipulation;
             flex-grow: 1;
         }
+
+        /* Confetti Styles (new) */
+        #confetti-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 5;
+        }
+        .confetto {
+            position: absolute;
+            opacity: 0.8;
+            border-radius: 2px;
+            will-change: transform; 
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            /* КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Мягкое падение и вращение без размытия */
+            0% {
+                transform: translateY(-5%) rotate(0deg) translateX(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg) translateX(0);
+                opacity: 0;
+            }
+        }
+        
+        /* Settings Screen Styles */
+        #settings-screen {
+            background-color: #fce7f3;
+        }
     </style>
 </head>
 <body>
+
+<!-- Аудио плеер для фоновой музыки -->
+<audio id="background-music" loop>
+    <!-- ВАША ССЫЛКА НА MP3 (Sakura-Girl-Daisy-chosic.com_.mp3) -->
+    <source src="uploaded:Sakura-Girl-Daisy-chosic.com_.mp3" type="audio/mpeg">
+    Ваш браузер не поддерживает аудио.
+</audio>
 
 <div id="app-container">
 
@@ -156,24 +203,21 @@
     </div>
 
     <!-- 2. MAIN MENU SCREEN -->
-    <div id="main-menu-screen" class="game-screen bg-pink-100 p-8">
-        <!-- ЛОГОТИП: ВРЕМЕННАЯ ЗАГЛУШКА. Вставьте сюда вашу ссылку с ImgBB! -->
-        <img src="https://placehold.co/150x150/FFC0CB/000000?text=CAKE+LOGO" 
+    <div id="main-menu-screen" class="game-screen p-8 relative">
+        <div id="confetti-container"></div> 
+
+        <img src="https://i.ibb.co/tg4H6Sf/photo-2025-11-16-03-40-45.jpg" 
              alt="Cake Logo" 
              class="rounded-full shadow-xl mb-6">
         
-        <!-- Слитный заголовок JuniorChef -->
         <h1 class="main-title font-black text-pink-600 text-center">JuniorChef</h1>
         
         <button id="playButton" class="menu-button bg-green-500 text-white hover:bg-green-600">
             ИГРАТЬ
         </button>
-        <button id="settingsButton" class="menu-button bg-blue-500 text-white hover:bg-blue-600 opacity-50 cursor-not-allowed">
+        <button id="settingsButton" class="menu-button bg-cyan-500 text-white hover:bg-cyan-600">
             НАСТРОЙКИ
         </button>
-        <div class="mt-8 p-4 bg-white rounded-lg shadow-md text-sm text-gray-700">
-            <p>Ваш ID: <span id="displayUserId" class="font-mono text-xs text-gray-500">Загрузка...</span></p>
-        </div>
     </div>
 
     <!-- 3. GAME VIEW (Контейнер с игрой) -->
@@ -192,8 +236,42 @@
         <!-- Canvas for the conveyor belt and cake -->
         <canvas id="gameCanvas"></canvas>
     </div>
+    
+    <!-- 4. SETTINGS SCREEN (НОВЫЙ ЭКРАН) -->
+    <div id="settings-screen" class="game-screen p-8">
+        <h1 class="text-3xl font-black text-cyan-600 mb-6 text-center">Настройки</h1>
+        
+        <!-- УПРАВЛЕНИЕ МУЗЫКОЙ (НОВЫЕ ЭЛЕМЕНТЫ) -->
+        <div class="w-full max-w-sm p-4 bg-white rounded-lg shadow-md mb-8 text-sm text-gray-700">
+            <p class="text-lg font-semibold mb-3">Музыка и Звук</p>
 
-    <!-- 4. GAME OVER SCREEN (Пустой контейнер) -->
+            <div class="flex justify-between items-center mb-4">
+                <label for="volume-slider" class="font-semibold">Громкость:</label>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.5" class="w-2/3">
+            </div>
+
+            <button id="toggle-music-btn" class="w-full py-2 rounded-lg font-bold transition-colors duration-150 bg-green-500 hover:bg-green-600 text-white">
+                Музыка: Вкл.
+            </button>
+        </div>
+
+        <!-- Информация о разработке -->
+        <div class="w-full max-w-sm p-4 bg-white rounded-lg shadow-md mb-8 text-sm text-gray-700">
+            <p class="text-lg font-semibold mb-2">Статус:</p>
+            <p class="text-red-500 font-bold mb-3">В процессе разработки</p>
+            
+            <hr class="mb-3">
+            
+            <p class="font-semibold">Ваш ID:</p>
+            <p id="displayUserIdSettings" class="font-mono text-xs text-gray-500 break-all">Загрузка...</p>
+        </div>
+        
+        <button id="backToMenuButton" class="menu-button bg-pink-500 text-white hover:bg-pink-600">
+            НАЗАД В МЕНЮ
+        </button>
+    </div>
+
+    <!-- 5. GAME OVER SCREEN -->
     <div id="game-over-screen" class="game-screen bg-pink-100 p-8">
         <h1 class="text-5xl font-black text-red-600 mb-4 text-center">ИГРА ОКОНЧЕНА</h1>
         <p class="text-2xl font-bold mb-6">Финальный счет: <span id="finalScoreDisplay" class="text-red-600">0</span></p>
@@ -214,24 +292,116 @@
 
 <!-- Game Script -->
 <script type="module">
-    // ===============================================
-    // 1. FIREBASE SETUP (DISABLED FOR STABILITY)
-    // ===============================================
-    
-    // Включение Firebase только при необходимости для рекордов.
-    // Пока что используем заглушки для совместимости с кодом.
-    let userId = null;
-    let isAuthReady = true; 
+    // Импорт необходимых модулей Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     // ===============================================
-    // 2. SCREEN MANAGEMENT
+    // 1. FIREBASE & AUTH SETUP (ВОССТАНОВЛЕНА)
     // ===============================================
+
+    // Конфигурация берется из переменных окружения
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'juniorchef-official';
+    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : JSON.stringify({
+        apiKey: "AIzaSyDGay5I8h4NsgtUaUhCYxfEnig9y0NkD5U",
+        authDomain: "juniorchef-official.firebaseapp.com",
+        projectId: "juniorchef-official",
+        storageBucket: "juniorchef-official.firebasestorage.app",
+        messagingSenderId: "400098008130",
+        appId: "1:400098008130:web:d046c604f331902d2e61db",
+        measurementId: "G-NH52VFKRTB"
+    }));
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    
+    // Инициализация сервисов Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let userId = null;
+    let isAuthReady = false;
+
+    // Аутентификация
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            userId = user.uid;
+        } else {
+            if (!initialAuthToken) {
+                try {
+                    const anonymousUser = await signInAnonymously(auth);
+                    userId = anonymousUser.user.uid;
+                } catch(e) {
+                    console.error("Anonymous Sign-In failed:", e);
+                }
+            }
+        }
+        isAuthReady = true;
+        document.getElementById('displayUserIdSettings').textContent = userId || 'Гостевой режим (ID: N/A)'; 
+    });
+
+    if (initialAuthToken) {
+        signInWithCustomToken(auth, initialAuthToken).catch(e => console.error("Custom Token Sign-In failed:", e));
+    }
+
+
+    // ===============================================
+    // 2. SCREEN MANAGEMENT & AUDIO CONTROL
+    // ===============================================
+    
+    const BGM = document.getElementById('background-music');
+    const volumeSlider = document.getElementById('volume-slider');
+    const toggleMusicBtn = document.getElementById('toggle-music-btn');
+    
+    // Флаг, чтобы не пытаться воспроизвести музыку повторно до взаимодействия
+    let musicAttemptedToPlay = false; 
+
+    // Настройка аудио при загрузке
+    BGM.volume = 0.5; 
+    
+    volumeSlider.addEventListener('input', (e) => {
+        BGM.volume = e.target.value;
+    });
+
+    toggleMusicBtn.addEventListener('click', () => {
+        if (BGM.paused) {
+            // Если пользователь нажимает "Вкл" — это явное взаимодействие.
+            BGM.play().catch(e => console.error("Audio playback failed:", e));
+            toggleMusicBtn.textContent = 'Музыка: Вкл.';
+            toggleMusicBtn.classList.replace('bg-red-500', 'bg-green-500');
+            musicAttemptedToPlay = true; // Считаем, что пользователь взаимодействовал
+        } else {
+            BGM.pause();
+            toggleMusicBtn.textContent = 'Музыка: Выкл.';
+            toggleMusicBtn.classList.replace('bg-green-500', 'bg-red-500');
+        }
+    });
+    
+    // Исправленная функция manageMusic
+    function manageMusic(screenName) {
+         if (screenName === 'menu') {
+             // Пытаемся запустить музыку только один раз, после первого взаимодействия
+             if (!musicAttemptedToPlay && BGM.paused) {
+                  // Пытаемся запустить, но не прерываем, если не получилось. 
+                  BGM.play().then(() => {
+                      musicAttemptedToPlay = true;
+                  }).catch(e => {
+                       // Silent fail or log the specific error that it needs user interaction
+                       console.warn("Autoplay was blocked. Music will start after user interaction.");
+                       musicAttemptedToPlay = true; // Считаем попытку за взаимодействие
+                  });
+             }
+         }
+         // Если пользователь ее выключил/включил через кнопку, состояние BGM.paused управляет воспроизведением.
+    }
+
 
     const screens = {
         intro: document.getElementById('intro-screen'),
         menu: document.getElementById('main-menu-screen'),
         game: document.getElementById('game-view'),
-        gameOver: document.getElementById('game-over-screen')
+        gameOver: document.getElementById('game-over-screen'),
+        settings: document.getElementById('settings-screen') // Новый экран
     };
     let currentScreen = 'intro';
 
@@ -240,6 +410,14 @@
             screens[key].style.display = key === name ? 'flex' : 'none';
         });
         currentScreen = name;
+        
+        // Управление конфетти и музыкой
+        if (name === 'menu') {
+            startConfetti();
+        } else {
+            stopConfetti();
+        }
+        manageMusic(name);
         
         // Запускаем/останавливаем логику игры
         if (name === 'game') {
@@ -266,9 +444,16 @@
         screens.intro.removeEventListener('click', startSplashTransition);
         document.removeEventListener('keydown', handleSplashKeydown);
         
-        // Показываем, что заставка "запустилась"
         document.getElementById('splashMessage').textContent = 'Студия Asonik представляет...';
         document.getElementById('splashMessage').style.visibility = 'hidden'; 
+        
+        // КРИТИЧНОЕ ИСПРАВЛЕНИЕ: Это первое взаимодействие, запускаем музыку здесь!
+        BGM.play().then(() => {
+            musicAttemptedToPlay = true;
+        }).catch(e => {
+            console.warn("Music was blocked, requiring another user click.");
+            musicAttemptedToPlay = true;
+        });
 
         // Автоматический переход в меню через 3 секунды
         setTimeout(() => {
@@ -281,6 +466,54 @@
         if (currentScreen === 'intro' && (e.code === 'Space' || e.key === 'Enter')) {
              startSplashTransition();
         }
+    }
+
+    // --- CONFETTI LOGIC (Улучшенная логика) ---
+    const confettiContainer = document.getElementById('confetti-container');
+    const CONFETTI_COLORS = ['#FFC0CB', '#FFD700', '#ADD8E6', '#90EE90', '#DC143C'];
+    let confettiInterval = null;
+
+    function createConfetto() {
+        const confetto = document.createElement('div');
+        confetto.className = 'confetto';
+        confetto.style.backgroundColor = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+        
+        const size = Math.floor(Math.random() * 10 + 10);
+        confetto.style.width = `${size}px`;
+        confetto.style.height = `${size / 2}px`; 
+        
+        confetto.style.left = `${Math.random() * 100}%`;
+        
+        confetto.style.animationDuration = `${Math.random() * 4 + 4}s`; 
+        confetto.style.animationDelay = `-${Math.random() * 8}s`; 
+        
+        confetto.style.transform = `rotate(${Math.random() * 360}deg)`;
+        
+        confettiContainer.appendChild(confetto);
+
+        confetto.addEventListener('animationend', () => {
+            confetto.remove();
+        });
+    }
+
+    function startConfetti() {
+        if (confettiInterval) return;
+        
+        for (let i = 0; i < 50; i++) {
+             createConfetto();
+        }
+        
+        confettiInterval = setInterval(() => {
+            createConfetto();
+        }, 300); 
+    }
+
+    function stopConfetti() {
+        if (confettiInterval) {
+            clearInterval(confettiInterval);
+            confettiInterval = null;
+        }
+        confettiContainer.innerHTML = '';
     }
 
     // --- ASSET LOADING (Simplified to just check auth status) ---
@@ -298,35 +531,30 @@
             if (loadedCount >= totalAssets) {
                 clearInterval(interval);
                 assetsLoaded = true;
-                // После загрузки меняем сообщение и активируем слушатели для перехода
                 introMessage.textContent = 'Нажмите, чтобы начать...'; 
                 introMessage.style.visibility = 'visible';
                 
-                // Активируем слушатели для перехода в меню
                 screens.intro.addEventListener('click', startSplashTransition);
                 document.addEventListener('keydown', handleSplashKeydown);
             }
         }, 100);
     }
 
-    // Menu to Game
+    // Menu Button Handlers
     document.getElementById('playButton').addEventListener('click', () => {
         showScreen('game');
     });
-
-    // Game Over to Menu
+    document.getElementById('settingsButton').addEventListener('click', () => {
+        showScreen('settings');
+    });
+    document.getElementById('backToMenuButton').addEventListener('click', () => {
+        showScreen('menu');
+    });
     document.getElementById('toMenuButton').addEventListener('click', () => {
         showScreen('menu');
     });
-
-    // Game Over to Game
     document.getElementById('restartButton').addEventListener('click', () => {
         showScreen('game');
-    });
-    
-    // Settings (Placeholder)
-    document.getElementById('settingsButton').addEventListener('click', () => {
-        console.log("Settings not implemented yet.");
     });
 
 
@@ -354,7 +582,7 @@
     // Constants
     const BLOCK_HEIGHT = 40;
     const BLOCK_WIDTH = 80;
-    let BELT_SPEED = 1.5; // Начальная скорость конвейера
+    let BELT_SPEED = 1.5; 
     
     // Позиции
     let CONVEYOR_Y = 0; 
@@ -364,31 +592,11 @@
 
     // Типы ингредиентов (Цветной режим)
     const INGREDIENTS = {
-        'база': { 
-            display: 'КОРЖ', 
-            color: '#8B4513', 
-            img: { isFallback: true, color: '#8B4513' }
-        },
-        'ваниль': { 
-            display: 'ВАНИЛЬ', 
-            color: '#FFF8DC', 
-            img: { isFallback: true, color: '#FFF8DC' }
-        },
-        'шоколад': { 
-            display: 'ШОКОЛАД', 
-            color: '#A0522D', 
-            img: { isFallback: true, color: '#A0522D' }
-        },
-        'глазурь': { 
-            display: 'ГЛАЗУРЬ', 
-            color: '#ADD8E6', 
-            img: { isFallback: true, color: '#ADD8E6' }
-        },
-        'вишня': { 
-            display: 'ВИШНЯ', 
-            color: '#DC143C', 
-            img: { isFallback: true, color: '#DC143C' }
-        }
+        'база': { display: 'КОРЖ', color: '#8B4513', img: { isFallback: true, color: '#8B4513' } },
+        'ваниль': { display: 'ВАНИЛЬ', color: '#FFF8DC', img: { isFallback: true, color: '#FFF8DC' } },
+        'шоколад': { display: 'ШОКОЛАД', color: '#A0522D', img: { isFallback: true, color: '#A0522D' } },
+        'глазурь': { display: 'ГЛАЗУРЬ', color: '#ADD8E6', img: { isFallback: true, color: '#ADD8E6' } },
+        'вишня': { display: 'ВИШНЯ', color: '#DC143C', img: { isFallback: true, color: '#DC143C' } }
     };
     const INGREDIENT_TYPES = Object.keys(INGREDIENTS);
     let lastIngredientSpawnTime = 0;
@@ -397,19 +605,16 @@
     
     // Adjust canvas size dynamically
     function resizeCanvas() {
-        // Убеждаемся, что мы на экране игры перед запросом элементов
         if (currentScreen !== 'game') return;
 
         const gameView = document.getElementById('game-view');
-        // Извлекаем высоту элементов, чтобы Canvas занял оставшееся место
         const headerHeight = gameView.children[0].offsetHeight + gameView.children[1].offsetHeight;
         canvas.width = gameView.clientWidth;
         canvas.height = gameView.clientHeight - headerHeight;
         
-        // Set key positions based on new height
-        CONVEYOR_Y = canvas.height - BLOCK_HEIGHT - 30; // Y position of the conveyor surface
-        DROP_ZONE_X = canvas.width * 0.7 + CAKE_BASE_CENTER_X_OFFSET; // Drop location (70% across)
-        CAKE_BASE_Y = canvas.height - 30; // Y position of the bottom of the cake stand area
+        CONVEYOR_Y = canvas.height - BLOCK_HEIGHT - 30; 
+        DROP_ZONE_X = canvas.width * 0.7 + CAKE_BASE_CENTER_X_OFFSET; 
+        CAKE_BASE_Y = canvas.height - 30; 
         
         if (isGameRunning) {
             draw();
@@ -418,7 +623,7 @@
     window.addEventListener('resize', resizeCanvas);
     
 
-    // --- GAME FLOW ---
+    // --- GAME FLOW (Core) ---
 
     function startGame() {
         if (!assetsLoaded) {
@@ -450,7 +655,6 @@
     // --- ORDER MANAGEMENT ---
 
     function generateNewOrder() {
-        // Order: Base + 2-4 random layers
         targetOrder = ['база'];
         const numLayers = 2 + Math.floor(Math.random() * 3); 
         
@@ -467,7 +671,6 @@
         currentCake = [];
         updateOrderDisplay();
         
-        // Увеличение сложности/скорости после выполнения заказа
         BELT_SPEED = Math.min(BELT_SPEED + 0.1, 4);
     }
 
@@ -490,18 +693,16 @@
     }
     
     function completeOrder() {
-        score += targetOrder.length * 10; // Bonus points for completing a cake
+        score += targetOrder.length * 10; 
         generateNewOrder();
     }
 
     // --- INGREDIENT SPAWNING ---
 
     function spawnIngredient(timestamp) {
-        // Уменьшаем интервал спауна с увеличением счета для сложности
         const dynamicInterval = Math.max(1000, SPAWN_INTERVAL - score * 50);
 
         if (timestamp - lastIngredientSpawnTime > dynamicInterval) {
-            // Randomly select type 
             const typeIndex = Math.floor(Math.random() * (INGREDIENT_TYPES.length));
             const randomType = INGREDIENT_TYPES[typeIndex];
 
@@ -510,7 +711,7 @@
                 x: -BLOCK_WIDTH, 
                 y: CONVEYOR_Y,
                 width: BLOCK_WIDTH,
-                color: INGREDIENTS[randomType].color, // color is needed for fallback
+                color: INGREDIENTS[randomType].color, 
                 isDropped: false
             });
             lastIngredientSpawnTime = timestamp;
@@ -519,18 +720,15 @@
 
     // --- GAME INPUT (Drop action) ---
 
-    // Убеждаемся, что слушатель Canvas установлен корректно после загрузки
     if (canvas) canvas.addEventListener('click', handleDrop);
     
     function handleDrop(event) {
         if (!isGameRunning || currentScreen !== 'game') return;
 
-        // 1. Get click coordinates relative to the canvas
         const rect = canvas.getBoundingClientRect();
         const clickX = event.clientX - rect.left;
         const clickY = event.clientY - rect.top;
 
-        // 2. Find the ingredient that was clicked
         let clickedIngredient = null;
         for (const ing of ingredientsOnBelt) {
             if (!ing.isDropped && 
@@ -543,15 +741,12 @@
             }
         }
         
-        if (!clickedIngredient) return; // Ignore if no ingredient was clicked
+        if (!clickedIngredient) return; 
 
         const requiredType = targetOrder[currentOrderStep];
         
-        // 3. The core logic: check if the type matches
         if (clickedIngredient.type === requiredType) {
-            // SUCCESS: Correct ingredient dropped
             
-            // Mark as dropped (it will be removed in the next update loop)
             clickedIngredient.isDropped = true;
 
             const newBlock = {
@@ -565,13 +760,11 @@
             score += 5; 
             updateOrderDisplay();
             
-            // Check if the order is complete
             if (currentOrderStep === targetOrder.length) {
-                setTimeout(completeOrder, 500); // Small delay to visualize completion
+                setTimeout(completeOrder, 500); 
             }
             
         } else {
-            // FAILURE: Wrong ingredient dropped
             gameOver();
             console.log(`Wrong ingredient dropped! Needed: ${INGREDIENTS[requiredType].display}, Got: ${INGREDIENTS[clickedIngredient.type].display}`);
         }
@@ -581,7 +774,6 @@
     // --- DRAWING FUNCTIONS ---
 
     function drawBlock(block, xPosition, yPosition) {
-        // Здесь мы используем только цветной режим
         const asset = INGREDIENTS[block.type];
 
         // Draw colored block
@@ -611,13 +803,12 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         // 1. Draw Conveyor Belt 
-        ctx.fillStyle = '#654321'; // Darker brown
+        ctx.fillStyle = '#654321'; 
         ctx.fillRect(0, CONVEYOR_Y + BLOCK_HEIGHT, canvas.width, 30);
         
         // 2. Draw Built Cake (fixed position near drop zone)
         if (currentCake.length > 0) {
             currentCake.forEach((block, index) => {
-                // Слои рисуются снизу вверх
                 const yPos = CAKE_BASE_Y - (currentCake.length - index) * BLOCK_HEIGHT;
                 const xPos = DROP_ZONE_X - BLOCK_WIDTH / 2;
                 drawBlock(block, xPos, yPos);
@@ -631,31 +822,25 @@
             }
         });
 
-        // Update HTML score
         scoreDisplay.textContent = score;
     }
 
     // --- GAME UPDATE ---
 
     function update(timestamp) {
-        // Handle ingredient spawning
         spawnIngredient(timestamp);
         
-        // 1. Move ingredients on the belt
         ingredientsOnBelt.forEach(ing => {
             if (!ing.isDropped) {
                 ing.x += BELT_SPEED;
             }
         });
 
-        // 2. Remove ingredients that went off-screen (fail condition)
         ingredientsOnBelt = ingredientsOnBelt.filter(ing => {
             if (!ing.isDropped && ing.x > canvas.width) {
-                // FAILURE: Ingredient missed!
                 gameOver();
                 return false;
             }
-            // Remove ingredients that were dropped (isDropped=true) AND are off-screen (cleanup)
             return ing.x < canvas.width;
         });
     }
@@ -673,7 +858,7 @@
     
     // Ensure the first screen is shown on load and start asset loading
     window.onload = function () {
-        loadAssets(); // Start loading assets first
+        loadAssets(); 
         showScreen('intro');
     }
 
