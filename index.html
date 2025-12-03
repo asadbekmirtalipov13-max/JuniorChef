@@ -1,8 +1,800 @@
-function update() {
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Junior Chef: Confectionary Line</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Base styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7e6e6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        #app-container {
+            width: 100%;
+            max-width: 450px; /* Mobile vertical view */
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-radius: 1 lysates;
+            overflow: hidden;
+            position: relative;
+        }
+        /* Style for all game screens/views */
+        .game-screen {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Intro Screen Specific Styles */
+        #intro-screen {
+            background-color: #000000;
+            justify-content: space-between; 
+            padding-top: 10vh; 
+        }
+        .intro-main-text {
+            font-family: 'Inter', sans-serif;
+            font-weight: 900;
+            font-size: 3.5rem; 
+            line-height: 1; 
+            color: #ffffff; 
+            letter-spacing: 0.05em;
+            margin: 0; 
+            padding: 0;
+            text-align: center; 
+        }
+        .intro-sub-text {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #ffffff; 
+            margin: 0; 
+            padding: 0;
+            line-height: 1; 
+            margin-top: -5px; 
+            position: relative;
+            left: 5px; 
+        }
+        .intro-container {
+            flex-grow: 1; 
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; 
+            align-items: center; 
+            padding-top: 20vh; 
+        }
+        #splashMessage {
+             margin-top: 15vh;
+             visibility: hidden;
+        }
+        .copyright-text {
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        /* Main Menu Styles */
+        #main-menu-screen {
+            background-color: #fce7f3; /* Light pink background */
+        }
+        #main-menu-screen img {
+             width: 150px;
+             height: 150px;
+             margin-bottom: 10px;
+             filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2)); 
+        }
+        .main-title {
+             font-size: 4rem;
+             font-weight: 900;
+             letter-spacing: 0; 
+             line-height: 1;
+             color: #db2777; /* Розовый цвет */
+             text-shadow: none; 
+             margin-bottom: 2rem; 
+        }
+
+        /* Button Style */
+        .menu-button {
+            padding: 1rem 3rem;
+            margin: 0.75rem 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border-radius: 9999px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.15s ease-in-out;
+        }
+        .menu-button:hover {
+            transform: scale(1.05);
+        }
+        #skinsButton {
+            background-color: #f97316; /* Orange color */
+            color: white;
+        }
+
+        /* Game Screen Styles */
+        #game-view {
+            display: flex;
+            flex-direction: column;
+            background-color: #f0f0f0; 
+            justify-content: flex-start;
+        }
+        #gameCanvas {
+            background-color: #a7f3d0; /* Зеленоватый фон для платформера */
+            touch-action: manipulation;
+            flex-grow: 1;
+        }
+
+        /* Confetti Styles (new) */
+        #confetti-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 5;
+        }
+        .confetto {
+            position: absolute;
+            opacity: 0.8;
+            border-radius: 2px;
+            will-change: transform; 
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            0% {
+                transform: translateY(-5%) translateX(var(--start-x));
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) translateX(var(--end-x));
+                opacity: 0;
+            }
+        }
+        
+        /* Settings Screen Styles */
+        #settings-screen {
+            background-color: #fce7f3;
+        }
+        .settings-control-group {
+             max-width: 350px;
+        }
+        
+        /* НОВЫЕ СТИЛИ ДЛЯ ПРОЗРАЧНЫХ КНОПОК */
+        #touch-controls {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            max-width: 450px;
+            height: 120px; /* Высота зоны управления */
+            z-index: 100;
+            display: none; /* Скрыты по умолчанию */
+            justify-content: space-between;
+            pointer-events: none; /* Позволяет кликать сквозь контейнер, только на кнопки */
+        }
+        .control-area {
+            height: 100%;
+            opacity: 0.1; /* Прозрачные */
+            background-color: black;
+            pointer-events: auto; /* Позволяет кликать на сами кнопки */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: 700;
+        }
+        #control-left { width: 30%; }
+        #control-jump { width: 40%; }
+        #control-right { width: 30%; }
+    </style>
+</head>
+<body>
+
+<audio id="background-music" loop>
+    <source src="https://github.com/asadbekmirtalipov13-max/JuniorChef/raw/main/Sakura-Girl-Daisy-chosic.com_.mp3" type="audio/mpeg">
+    Ваш браузер не поддерживает аудио.
+</audio>
+
+<div id="app-container">
+
+    <div id="intro-screen" class="game-screen text-white">
+        
+        <div class="intro-container">
+            <h1 id="splashTitle" class="intro-main-text">Asonik Studios</h1>
+            <p id="splashSubtitle" class="intro-sub-text">представляет</p>
+            <p id="splashMessage" class="text-gray-400 mt-4 text-sm mb-8">Загрузка ресурсов...</p>
+        </div>
+        
+        <p class="copyright-text">2025©</p>
+    </div>
+
+    <div id="main-menu-screen" class="game-screen p-8 relative">
+        <div id="confetti-container"></div> 
+
+        <img src="https://i.ibb.co/tg4H6Sf/photo-2025-11-16-03-40-45.jpg" 
+             alt="Cake Logo" 
+             class="rounded-full shadow-xl mb-6">
+        
+        <h1 class="main-title font-black text-pink-600 text-center">JuniorChef</h1>
+        
+        <button id="playButton" class="menu-button bg-green-500 text-white hover:bg-green-600">
+            ИГРАТЬ
+        </button>
+        <button id="skinsButton" class="menu-button bg-orange-500 text-white hover:bg-orange-600">
+            СКИНЫ
+        </button>
+        <button id="settingsButton" class="menu-button bg-cyan-500 text-white hover:bg-cyan-600">
+            НАСТРОЙКИ
+        </button>
+        <p class="text-sm text-gray-600 mt-4">Версия: v0.1</p>
+    </div>
+
+    <div id="game-view" class="game-screen">
+        <div class="w-full bg-yellow-400 text-gray-800 p-2 shadow-md flex justify-between items-center sticky top-0 z-10">
+            <div class="text-sm font-semibold">МОНЕТЫ: <span id="scoreDisplay" class="text-lg font-extrabold">0</span></div>
+            <div class="text-sm font-semibold">ЛУЧШИЙ СЧЕТ: <span id="highScoreDisplay" class="text-lg font-extrabold text-red-600">0</span></div>
+        </div>
+        
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="touch-controls">
+            <div id="control-left" class="control-area">
+                &larr;
+            </div>
+            <div id="control-jump" class="control-area">
+                ПРЫЖОК
+            </div>
+            <div id="control-right" class="control-area">
+                &rarr;
+            </div>
+        </div>
+
+    </div>
+    
+    <div id="skins-screen" class="game-screen bg-pink-100 p-8">
+        <h1 class="text-3xl font-black text-orange-600 mb-6 text-center">Скины</h1>
+        
+        <div class="p-6 bg-white rounded-lg shadow-md text-center text-gray-700">
+            <p class="text-xl font-bold text-red-500">В процессе разработки</p>
+            <p class="mt-2">Следите за обновлениями!</p>
+        </div>
+        
+        <button id="backToMenuSkinsButton" class="menu-button bg-pink-500 text-white hover:bg-pink-600 mt-8">
+            НАЗАД В МЕНЮ
+        </button>
+    </div>
+    
+    <div id="settings-screen" class="game-screen p-8">
+        <h1 class="text-3xl font-black text-cyan-600 mb-6 text-center">Настройки</h1>
+        
+        <div class="w-full settings-control-group p-4 bg-white rounded-lg shadow-md mb-8 text-sm text-gray-700">
+            <p class="text-lg font-semibold mb-4">Управление Звуком</p>
+
+            <div class="flex justify-between items-center mb-4">
+                <label for="volume-slider" class="font-semibold">Музыка (BGM):</label>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.5" class="w-2/3">
+            </div>
+            
+            <div class="flex justify-between items-center mb-6">
+                <label for="sfx-volume-slider" class="font-semibold">Общие Звуки (SFX):</label>
+                <input type="range" id="sfx-volume-slider" min="0" max="1" step="0.05" value="0.8" class="w-2/3">
+            </div>
+
+            <button id="toggle-all-audio-btn" class="w-full py-2 rounded-lg font-bold transition-colors duration-150 bg-green-500 hover:bg-green-600 text-white">
+                Звук: Вкл.
+            </button>
+        </div>
+
+
+        <div class="w-full max-w-sm p-4 bg-white rounded-lg shadow-md mb-8 text-sm text-gray-700">
+            <p class="text-lg font-semibold mb-2">Статус:</p>
+            <p class="text-red-500 font-bold mb-3">В процессе разработки</p>
+            
+            <hr class="mb-3">
+            
+            <p class="font-semibold">Ваш ID:</p>
+            <p id="displayUserIdSettings" class="font-mono text-xs text-gray-500 break-all">Загрузка...</p>
+        </div>
+        
+        <button id="backToMenuButton" class="menu-button bg-pink-500 text-white hover:bg-pink-600">
+            НАЗАД В МЕНЮ
+        </button>
+    </div>
+
+    <div id="game-over-screen" class="game-screen bg-pink-100 p-8">
+        <h1 class="text-5xl font-black text-red-600 mb-4 text-center">ИГРА ОКОНЧЕНА</h1>
+        <p class="text-2xl font-bold mb-6">Финальный счет: <span id="finalScoreDisplay" class="text-red-600">0</span></p>
+        
+        <button id="restartButton" class="menu-button bg-green-500 text-white hover:bg-green-600">
+            ИГРАТЬ СНОВА
+        </button>
+        <button id="toMenuButton" class="menu-button bg-blue-500 text-white hover:bg-blue-600">
+            ГЛАВНОЕ МЕНЮ
+        </button>
+
+        <div class="mt-8 text-center text-gray-600">
+             <p>Таблица рекордов (скоро)</p>
+        </div>
+    </div>
+
+</div>
+
+<script type="module">
+    // ===============================================
+    // 1. FIREBASE & AUTH SETUP (ЗНАЧИТЕЛЬНО УПРОЩЕНО)
+    // ===============================================
+    
+    let userId = null;
+    let isAuthReady = true; 
+
+    // Имитация аутентификации для отображения ID в настройках
+    setTimeout(() => {
+        userId = 'MOCK-' + Math.random().toString(36).substring(2, 12);
+        const displayElement = document.getElementById('displayUserIdSettings');
+        if (displayElement) {
+             displayElement.textContent = userId;
+        }
+    }, 500);
+
+
+    // ===============================================
+    // 2. SCREEN MANAGEMENT & AUDIO CONTROL
+    // ===============================================
+    
+    // Глобальные переменные игры 
+    let gameLoopRef = null;
+    let isGameRunning = false;
+    let score = 0; 
+    let highScore = 0; 
+    
+    const BGM = document.getElementById('background-music');
+    const volumeSlider = document.getElementById('volume-slider');
+    const sfxVolumeSlider = document.getElementById('sfx-volume-slider');
+    const toggleAllAudioBtn = document.getElementById('toggle-all-audio-btn');
+
+    let musicAttemptedToPlay = false; 
+    let sfxVolume = 0.8; 
+    let bgmVolume = 0.5;
+    let isAudioGloballyEnabled = true;
+
+    // Настройка аудио при загрузке
+    BGM.volume = 0.5; 
+    
+    volumeSlider.addEventListener('input', (e) => {
+        bgmVolume = parseFloat(e.target.value);
+        if (isAudioGloballyEnabled) {
+            BGM.volume = bgmVolume;
+        }
+    });
+    
+    sfxVolumeSlider.addEventListener('input', (e) => {
+        sfxVolume = parseFloat(e.target.value);
+    });
+
+    toggleAllAudioBtn.addEventListener('click', () => {
+        isAudioGloballyEnabled = !isAudioGloballyEnabled;
+        
+        if (isAudioGloballyEnabled) {
+            // Включаем
+            if (BGM.paused) {
+                BGM.volume = bgmVolume; 
+                BGM.play().catch(e => console.error("Audio playback failed:", e));
+            }
+            toggleAllAudioBtn.textContent = 'Звук: Вкл.';
+            toggleAllAudioBtn.classList.replace('bg-red-500', 'bg-green-500');
+        } else {
+            // Выключаем
+            BGM.pause();
+            toggleAllAudioBtn.textContent = 'Звук: Выкл.';
+            toggleAllAudioBtn.classList.replace('bg-green-500', 'bg-red-500');
+        }
+    });
+    
+    function manageMusic(screenName) {
+         if (screenName === 'menu' && isAudioGloballyEnabled) {
+             if (!musicAttemptedToPlay && BGM.paused) {
+                  BGM.play().then(() => {
+                      musicAttemptedToPlay = true;
+                  }).catch(e => {
+                       console.warn("Autoplay was blocked. Music will start after user interaction.");
+                       musicAttemptedToPlay = true;
+                  });
+             }
+         }
+    }
+
+
+    const screens = {
+        intro: document.getElementById('intro-screen'),
+        menu: document.getElementById('main-menu-screen'),
+        game: document.getElementById('game-view'),
+        gameOver: document.getElementById('game-over-screen'),
+        settings: document.getElementById('settings-screen'),
+        skins: document.getElementById('skins-screen') 
+    };
+    let currentScreen = 'intro';
+
+    function showScreen(name) {
+        Object.keys(screens).forEach(key => {
+            screens[key].style.display = key === name ? 'flex' : 'none';
+        });
+        currentScreen = name;
+        
+        // Управление конфетти
+        if (name === 'menu') {
+            startConfetti();
+        } else {
+            stopConfetti();
+        }
+        manageMusic(name);
+        
+        // Управление видимостью кнопок управления
+        const touchControls = document.getElementById('touch-controls');
+        touchControls.style.display = name === 'game' ? 'flex' : 'none';
+        
+        // Запускаем/останавливаем логику игры
+        if (name === 'game') {
+            if (!isGameRunning) {
+               startGame();
+            }
+        } else if (isGameRunning) {
+             isGameRunning = false;
+        }
+        
+        if (name === 'game') {
+             resizeCanvas();
+        }
+    }
+    
+    let isTransitioning = false; 
+    let assetsLoaded = false; 
+
+    function startSplashTransition() {
+        if (isTransitioning || !assetsLoaded) return;
+        
+        isTransitioning = true;
+        
+        screens.intro.removeEventListener('click', startSplashTransition);
+        document.removeEventListener('keydown', handleSplashKeydown);
+        
+        document.getElementById('splashMessage').textContent = 'Студия Asonik представляет...';
+        document.getElementById('splashMessage').style.visibility = 'hidden'; 
+        
+        // Первое взаимодействие: запускаем музыку здесь!
+        if (isAudioGloballyEnabled) {
+             BGM.play().then(() => {
+                musicAttemptedToPlay = true;
+             }).catch(e => {
+                console.warn("Music was blocked, requiring another user click.");
+                musicAttemptedToPlay = true;
+             });
+        }
+
+        // Автоматический переход в меню через 3 секунды
+        setTimeout(() => {
+            showScreen('menu'); 
+            isTransitioning = false;
+        }, 3000); 
+    }
+    
+    function handleSplashKeydown(e) {
+        if (currentScreen === 'intro' && (e.code === 'Space' || e.key === 'Enter')) {
+             startSplashTransition();
+        }
+    }
+
+    // --- CONFETTI LOGIC (ИСПРАВЛЕНО) ---
+    const confettiContainer = document.getElementById('confetti-container');
+    const CONFETTI_COLORS = ['#FFC0CB', '#FFD700', '#ADD8E6', '#90EE90', '#FFA07A'];
+    let confettiInterval = null;
+
+    function createConfetto() {
+        const confetto = document.createElement('div');
+        confetto.className = 'confetto';
+        confetto.style.backgroundColor = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+        
+        const size = Math.floor(Math.random() * 10 + 10);
+        confetto.style.width = `${size}px`;
+        confetto.style.height = `${size / 2}px`; 
+        
+        // Устанавливаем переменные CSS для анимации
+        const startX = `${Math.random() * 100}%`;
+        const endX = `${Math.random() * 100}%`; 
+        confetto.style.setProperty('--start-x', startX);
+        confetto.style.setProperty('--end-x', endX);
+
+        confetto.style.left = startX;
+        
+        confetto.style.animationDuration = `${Math.random() * 4 + 4}s`; // 4 to 8 seconds
+        confetto.style.animationDelay = `-${Math.random() * 8}s`; 
+        
+        confettiContainer.appendChild(confetto);
+
+        confetto.addEventListener('animationend', () => {
+            confetto.remove();
+        });
+    }
+
+    function startConfetti() {
+        if (confettiInterval) return;
+        
+        for (let i = 0; i < 50; i++) {
+             createConfetto();
+        }
+        
+        confettiInterval = setInterval(() => {
+            createConfetto();
+        }, 300); 
+    }
+
+    function stopConfetti() {
+        if (confettiInterval) {
+            clearInterval(confettiInterval);
+            confettiInterval = null;
+        }
+        confettiContainer.innerHTML = '';
+    }
+
+    // --- ASSET LOADING (Simplified to just check auth status) ---
+    function loadAssets() {
+        // Имитация загрузки ресурсов
+        const INGREDIENT_TYPES = ['база', 'ваниль', 'шоколад', 'глазурь', 'вишня'];
+        const totalAssets = INGREDIENT_TYPES.length;
+        const introMessage = document.getElementById('splashMessage');
+
+        // Имитация загрузки
+        let loadedCount = 0;
+        const interval = setInterval(() => {
+            loadedCount++;
+            introMessage.textContent = `Загрузка ресурсов: ${loadedCount}/${totalAssets}`;
+            if (loadedCount >= totalAssets) {
+                clearInterval(interval);
+                assetsLoaded = true;
+                introMessage.textContent = 'Нажмите, чтобы начать...'; 
+                introMessage.style.visibility = 'visible';
+                
+                screens.intro.addEventListener('click', startSplashTransition);
+                document.addEventListener('keydown', handleSplashKeydown);
+            }
+        }, 100);
+    }
+
+    // Menu Button Handlers
+    document.getElementById('playButton').addEventListener('click', () => {
+        showScreen('game');
+    });
+    document.getElementById('skinsButton').addEventListener('click', () => {
+        showScreen('skins');
+    });
+    document.getElementById('settingsButton').addEventListener('click', () => {
+        showScreen('settings');
+    });
+    document.getElementById('backToMenuButton').addEventListener('click', () => {
+        showScreen('menu');
+    });
+    document.getElementById('backToMenuSkinsButton').addEventListener('click', () => {
+        showScreen('menu');
+    });
+    document.getElementById('toMenuButton').addEventListener('click', () => {
+        showScreen('menu');
+    });
+    document.getElementById('restartButton').addEventListener('click', () => {
+        showScreen('game');
+    });
+
+
+    // ===============================================
+    // 3. GAME LOGIC (Platformer - НОВАЯ МЕХАНИКА)
+    // ===============================================
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const highScoreDisplay = document.getElementById('highScoreDisplay');
+    const finalScoreDisplay = document.getElementById('finalScoreDisplay');
+
+    // -- ФУНКЦИИ ГРАФИКИ ИЗМЕНЕНИЯ РАЗМЕРА --
+    function resizeCanvas() {
+        if (currentScreen !== 'game') return;
+
+        const gameView = document.getElementById('game-view');
+        const headerHeight = gameView.children[0].offsetHeight; 
+        canvas.width = gameView.clientWidth;
+        canvas.height = gameView.clientHeight - headerHeight;
+        
+        // Initial setup for the first base block if stack is empty
+        if (platforms.length === 0) {
+            createWorld();
+        }
+        
+        if (isGameRunning) {
+             draw();
+        }
+    }
+    window.addEventListener('resize', resizeCanvas);
+    
+    // -- ПЕРСОНАЖ --
+    const player = {
+        x: 50,
+        y: 0,
+        width: 20,
+        height: 20,
+        color: '#ff6666', // Красный квадрат (пока)
+        vy: 0, // Скорость по Y (гравитация/прыжок)
+        vx: 0, // Скорость по X
+        onGround: false,
+        onLadder: false,
+        speed: 4,
+        jumpPower: 12,
+        gravity: 0.5,
+        baseJumpPower: 12 
+    };
+
+    // -- ИГРОВОЙ МИР --
+    const COLORS = ['#FFC0CB', '#FFD700', '#ADD8E6', '#90EE90', '#FFA07A']; // Pink, Gold, Blue, Green, Salmon
+
+    let platforms = []; // Торты (прямоугольники)
+    let ladders = []; // Лестницы
+    let enemies = []; // Враждебные персонажи (красные точки)
+    let coins = []; // Монетки
+    let trampolines = []; // Батуты (новое)
+    let scrollSpeed = 0; // Скорость сдвига мира вниз
+
+    // -- УПРАВЛЕНИЕ --
+    const keys = {
+        left: false,
+        right: false,
+        jump: false,
+        up: false,
+        down: false,
+        // Флаг для управления через тач
+        touchLeft: false,
+        touchRight: false,
+        touchJump: false,
+        touchUp: false,
+        touchDown: false,
+        
+    };
+
+    // --- ИНИЦИАЛИЗАЦИЯ МИРА ---
+
+    function createWorld() {
+        platforms = [
+            // Нижняя платформа (торт) - спавним внизу
+            { x: 0, y: canvas.height - 30, w: canvas.width, h: 30, color: COLORS[0] },
+            // Центральный торт 1
+            { x: 50, y: canvas.height - 120, w: 100, h: 30, color: COLORS[1] },
+            // Центральный торт 2
+            { x: canvas.width - 150, y: canvas.height - 220, w: 120, h: 30, color: COLORS[2] },
+            // Верхний торт
+            { x: 100, y: canvas.height - 350, w: 150, h: 30, color: COLORS[3] }
+        ];
+
+        ladders = [
+            // Лестница 1
+            { x: 80, y: canvas.height - 120, w: 15, h: 100, color: '#a0522d' },
+            // Лестница 2
+            { x: canvas.width - 80, y: canvas.height - 220, w: 15, h: 100, color: '#a0522d' }
+        ];
+        
+        enemies = [
+             // Враг 1 (движется по нижней платформе)
+             { x: 200, y: platforms[0].y - 10, w: 10, h: 10, color: '#ff0000', vx: 1 }
+        ];
+
+        trampolines = [
+             // Батут 1
+            { x: 180, y: canvas.height - 60, w: 40, h: 10, color: '#00ffff', jumpBoost: 1.8 }
+        ];
+
+        player.x = 50;
+        // Персонаж стартует на нижней платформе
+        player.y = platforms[0].y - player.height;
+        player.vy = 0;
+        player.onGround = true;
+    }
+
+
+    // --- GAME FLOW ---
+
+    function startGame() {
+        if (!assetsLoaded) return;
+        if (gameLoopRef) cancelAnimationFrame(gameLoopRef);
+        
+        score = 0;
+        highScore = 0; 
+        isGameRunning = true;
+        scrollSpeed = 0;
+        
+        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ БАГА "ПРИЗРАК": Сброс всех флагов управления
+        keys.left = keys.right = keys.jump = keys.up = keys.down = false;
+        keys.touchLeft = keys.touchRight = keys.touchJump = keys.touchUp = keys.touchDown = false;
+        
+        createWorld();
+        // ВАЖНОЕ ИСПРАВЛЕНИЕ VERCEL: Добавляем задержку перед resize, чтобы DOM обновился
+        setTimeout(() => {
+             resizeCanvas(); 
+             gameLoopRef = requestAnimationFrame(gameLoop);
+        }, 50); // Небольшая задержка
+    }
+
+    function gameOver() {
+        isGameRunning = false;
+        if (gameLoopRef) cancelAnimationFrame(gameLoopRef);
+        
+        finalScoreDisplay.textContent = score;
+        showScreen('gameOver');
+    }
+    
+    // --- ГЕНЕРАЦИЯ БЕСКОНЕЧНОГО МИРА ---
+
+    function generateNewPlatforms(offsetY) {
+        const newPlatformY = offsetY - 150; 
+
+        // Платформа (торт)
+        platforms.push({
+            x: Math.random() * (canvas.width - 150) + 50, 
+            y: newPlatformY, 
+            w: Math.random() * 80 + 80, 
+            h: 30, 
+            color: COLORS[Math.floor(Math.random() * COLORS.length)] 
+        });
+        
+        // Лестница (шанс 30%)
+        if (Math.random() < 0.3) {
+            const lastP = platforms[platforms.length - 1];
+            ladders.push({
+                x: lastP.x + lastP.w / 2 - 7.5, // Центр платформы
+                y: lastP.y,
+                w: 15,
+                h: 100,
+                color: '#a0522d'
+            });
+        }
+        
+        // Батут (шанс 20%)
+        if (Math.random() < 0.2) {
+             trampolines.push({
+                x: Math.random() * (canvas.width - 60) + 30,
+                y: newPlatformY + 30, // Снизу платформы или отдельно
+                w: 40,
+                h: 10,
+                color: '#00ffff',
+                jumpBoost: 1.8
+            });
+        }
+    }
+
+
+    // --- UPDATE ---
+
+    function update() {
         if (!isGameRunning) return;
 
         // 1. Сброс состояния
-        // УДАЛЕНО: player.onGround = false; (Это ломало прыжок)
+        // ИСПРАВЛЕНИЕ: Мы больше не сбрасываем onGround здесь, чтобы сохранить его для проверки прыжка
         player.onLadder = false;
 
         // 2. Управление движением (Объединяем клавиатуру и тач)
@@ -19,10 +811,11 @@ function update() {
         const shouldClimbDown = keys.down || keys.touchDown;
 
         // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ ЛОГИКИ ПРЫЖКА
-        // Теперь проверка происходит ДО сброса onGround, используя значение с прошлого кадра
+        // Теперь мы проверяем прыжок ДО того, как сбросили флаг onGround.
+        // Это позволяет персонажу прыгнуть, если он стоял на земле в прошлом кадре.
         if (shouldJump && player.onGround) {
             player.vy = -player.jumpPower;
-            player.onGround = false;
+            player.onGround = false; // Теперь мы в воздухе
         }
         
         // 4. Физика: Гравитация и Движение
@@ -34,40 +827,46 @@ function update() {
         player.x += player.vx;
         
         // 5. ВЕРТИКАЛЬНЫЙ СКРОЛЛ (Бесконечное восхождение)
-        const scrollThreshold = canvas.height * 0.4; 
+        const scrollThreshold = canvas.height * 0.4; // 40% от верха экрана
 
         if (player.y < scrollThreshold) {
+            // Игрок поднимается выше центра, сдвигаем мир вниз
             const scrollAmount = scrollThreshold - player.y;
             player.y = scrollThreshold;
             
+            // Сдвигаем все объекты вниз
             platforms.forEach(p => p.y += scrollAmount);
             ladders.forEach(l => l.y += scrollAmount);
             enemies.forEach(e => e.y += scrollAmount);
             trampolines.forEach(t => t.y += scrollAmount);
+            // score++; // Увеличиваем счет за восхождение
         }
 
+        // ГЕНЕРАЦИЯ: Если самая высокая платформа (самая нижняя координата Y) находится ниже нуля, генерируем новые
         if (platforms.length > 0 && platforms[platforms.length - 1].y > -50) {
             generateNewPlatforms(platforms[platforms.length - 1].y);
         }
+        // Удаление старых платформ, которые ушли за нижний край
         platforms = platforms.filter(p => p.y < canvas.height + 50);
 
 
         // 6. ОБНАРУЖЕНИЕ СТОЛКНОВЕНИЙ
         
-        // ВАЖНО: Сбрасываем onGround здесь, перед новой проверкой столкновений
-        player.onGround = false; 
-        
+        // ВАЖНО: Сбрасываем флаг onGround здесь, ПЕРЕД проверкой коллизий
+        player.onGround = false;
+
         // Столкновение с Платформами (торты)
         for (const platform of platforms) {
+            // Проверка, не столкнулся ли игрок с платформой снизу
             if (player.y + player.height > platform.y && 
-                player.y < platform.y && 
+                player.y < platform.y && // Игрок падает сверху
                 player.x + player.width > platform.x && 
                 player.x < platform.x + platform.w &&
-                player.vy >= 0) 
+                player.vy >= 0) // Только если движется вниз
             {
                 player.y = platform.y - player.height;
                 player.vy = 0;
-                player.onGround = true; // Если стоим, флаг станет true
+                player.onGround = true;
             }
         }
         
@@ -86,47 +885,215 @@ function update() {
         
         // Управление на Лестнице
         if (player.onLadder) {
-             player.vy = 0; 
-             if (shouldClimbUp) { 
+             player.vy = 0; // Отключаем гравитацию на лестнице
+             if (shouldClimbUp) { // Используем объединенный флаг
                  player.y -= player.speed / 2;
-             } else if (shouldClimbDown) { 
+             } else if (shouldClimbDown) { // Используем объединенный флаг
                  player.y += player.speed / 2;
              }
         } 
         
-        // Столкновение с Батутами
+        // Столкновение с Батутами (новое)
         for (const tramp of trampolines) {
              if (player.y + player.height > tramp.y &&
                  player.y < tramp.y &&
                  player.x + player.width > tramp.x &&
                  player.x < tramp.x + tramp.w &&
                  player.vy >= 0) {
+                 // Батут! Увеличиваем силу прыжка
                  player.vy = -(player.jumpPower * tramp.jumpBoost);
              }
         }
         
-        // 7. Столкновение с Врагами
+        // 7. Столкновение с Врагами (красные точки)
         for (const enemy of enemies) {
              if (player.x < enemy.x + enemy.w &&
                  player.x + player.width > enemy.x &&
                  player.y < enemy.y + enemy.h &&
                  player.y + player.height > enemy.y) {
+                 // Враг! Game Over.
                  gameOver();
                  return;
              }
         }
         
-        // 8. Смерть от падения
+        // 8. Смерть от падения (на дно экрана)
         if (player.y > canvas.height + 50) {
             gameOver();
         }
         
-        // 9. Движение врагов
+        // 9. Движение врагов (простейшее)
         for (const enemy of enemies) {
             enemy.x += enemy.vx;
+            // Простая смена направления при столкновении с границами платформы (пока не реализовано)
         }
+
 
         // 10. Ограничение движения по горизонтали
         if (player.x < 0) player.x = 0;
         if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
     }
+
+
+    // --- DRAWING ---
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 1. Рисуем Платформы (Торты)
+        for (const p of platforms) {
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, p.w, p.h);
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Inter';
+            ctx.fillText("Торт", p.x + 5, p.y + p.h / 2 + 4);
+        }
+
+        // 2. Рисуем Лестницы
+        for (const l of ladders) {
+            ctx.fillStyle = l.color;
+            ctx.fillRect(l.x, l.y, l.w, l.h);
+        }
+        
+        // 3. Рисуем Батуты
+        for (const t of trampolines) {
+             ctx.fillStyle = t.color;
+             ctx.fillRect(t.x, t.y, t.w, t.h);
+             ctx.fillStyle = '#333';
+             ctx.font = '12px Inter';
+             ctx.fillText("Батут", t.x + 5, t.y + t.h / 2 + 4);
+        }
+
+        // 4. Рисуем Врагов (Красные точки)
+        for (const e of enemies) {
+            ctx.fillStyle = e.color;
+            ctx.fillRect(e.x, e.y, e.w, e.h);
+        }
+        
+        // 5. Рисуем Персонажа
+        ctx.fillStyle = player.color;
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+        
+        // Обновляем счет
+        scoreDisplay.textContent = score;
+        highScoreDisplay.textContent = highScore;
+    }
+
+
+    // --- GAME LOOP ---
+    function gameLoop(timestamp) {
+        if (!isGameRunning) return;
+        
+        update();
+        draw();
+        
+        gameLoopRef = requestAnimationFrame(gameLoop);
+    }
+    
+    // --- INPUT HANDLERS (Клавиатура) ---
+    window.addEventListener('keydown', (e) => {
+        if (currentScreen !== 'game') return;
+
+        switch (e.key) {
+            case 'ArrowLeft':
+            case 'a':
+                keys.left = true;
+                break;
+            case 'ArrowRight':
+            case 'd':
+                keys.right = true;
+                break;
+            case 'ArrowUp':
+            case 'w':
+            case ' ':
+                keys.jump = true;
+                keys.up = true; // Для лестниц
+                break;
+            case 'ArrowDown':
+            case 's':
+                 keys.down = true; // Для лестниц
+                 break;
+        }
+    });
+
+    window.addEventListener('keyup', (e) => {
+        if (currentScreen !== 'game') return;
+
+        switch (e.key) {
+            case 'ArrowLeft':
+            case 'a':
+                keys.left = false;
+                break;
+            case 'ArrowRight':
+            case 'd':
+                keys.right = false;
+                break;
+            case 'ArrowUp':
+            case 'w':
+            case ' ':
+                keys.jump = false;
+                keys.up = false;
+                break;
+            case 'ArrowDown':
+            case 's':
+                keys.down = false;
+                break;
+        }
+    });
+    
+    // --- INPUT HANDLERS (Сенсорное управление) ---
+
+    const controlLeft = document.getElementById('control-left');
+    const controlRight = document.getElementById('control-right');
+    const controlJump = document.getElementById('control-jump');
+    
+    // Лево
+    controlLeft.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        keys.touchLeft = true;
+        // Движение вниз по лестнице
+        if (player.onLadder) keys.touchDown = true; 
+    });
+    controlLeft.addEventListener('touchend', () => {
+        keys.touchLeft = false;
+        keys.touchDown = false;
+    });
+
+    // Право
+    controlRight.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        keys.touchRight = true;
+        // Движение вниз по лестнице
+        if (player.onLadder) keys.touchDown = true; 
+    });
+    controlRight.addEventListener('touchend', () => {
+        keys.touchRight = false;
+        keys.touchDown = false;
+    });
+
+    // Прыжок/Вверх по лестнице
+    controlJump.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        
+        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Установка флага прыжка
+        keys.touchJump = true;
+        
+        if (player.onLadder) {
+             keys.touchUp = true; // Нажатие - поднимаемся по лестнице
+             keys.touchJump = false; // Отключаем прыжок, если активно лазание
+        }
+    });
+    controlJump.addEventListener('touchend', () => {
+        keys.touchJump = false;
+        keys.touchUp = false;
+    });
+
+
+    // Ensure the first screen is shown on load and start asset loading
+    window.onload = function () {
+        loadAssets(); 
+        showScreen('intro');
+    }
+</script>
+</body>
+</html>
