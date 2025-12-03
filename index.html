@@ -113,7 +113,7 @@
              line-height: 1;
              color: #db2777; /* Розовый цвет */
              text-shadow: none; 
-             margin-bottom: 3rem;
+             margin-bottom: 2rem; 
         }
 
         /* Button Style */
@@ -129,6 +129,10 @@
         .menu-button:hover {
             transform: scale(1.05);
         }
+        #skinsButton {
+            background-color: #f97316; /* Orange color */
+            color: white;
+        }
 
         /* Game Screen Styles */
         #game-view {
@@ -138,7 +142,7 @@
             justify-content: flex-start;
         }
         #gameCanvas {
-            background-color: #f7f7f7;
+            background-color: #a7f3d0; /* Зеленоватый фон для платформера */
             touch-action: manipulation;
             flex-grow: 1;
         }
@@ -162,13 +166,12 @@
             animation: fall linear infinite;
         }
         @keyframes fall {
-            /* КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Мягкое падение и вращение без размытия */
             0% {
-                transform: translateY(-5%) rotate(0deg) translateX(0);
+                transform: translateY(-5%) translateX(var(--start-x));
                 opacity: 1;
             }
             100% {
-                transform: translateY(100vh) rotate(360deg) translateX(0);
+                transform: translateY(100vh) translateX(var(--end-x));
                 opacity: 0;
             }
         }
@@ -177,14 +180,16 @@
         #settings-screen {
             background-color: #fce7f3;
         }
+        .settings-control-group {
+             max-width: 350px;
+        }
     </style>
 </head>
 <body>
 
 <!-- Аудио плеер для фоновой музыки -->
 <audio id="background-music" loop>
-    <!-- ВАША ССЫЛКА НА MP3 (Sakura-Girl-Daisy-chosic.com_.mp3) -->
-    <source src="uploaded:Sakura-Girl-Daisy-chosic.com_.mp3" type="audio/mpeg">
+    <source src="https://github.com/asadbekmirtalipov13-max/JuniorChef/raw/main/Sakura-Girl-Daisy-chosic.com_.mp3" type="audio/mpeg">
     Ваш браузер не поддерживает аудио.
 </audio>
 
@@ -215,45 +220,71 @@
         <button id="playButton" class="menu-button bg-green-500 text-white hover:bg-green-600">
             ИГРАТЬ
         </button>
+        <!-- Кнопка Скины -->
+        <button id="skinsButton" class="menu-button bg-orange-500 text-white hover:bg-orange-600">
+            СКИНЫ
+        </button>
         <button id="settingsButton" class="menu-button bg-cyan-500 text-white hover:bg-cyan-600">
             НАСТРОЙКИ
         </button>
+        <!-- Версия Игры -->
+        <p class="text-sm text-gray-600 mt-4">Версия: v0.1</p>
     </div>
 
     <!-- 3. GAME VIEW (Контейнер с игрой) -->
     <div id="game-view" class="game-screen">
-        <!-- Score & Order Header -->
+        <!-- Score Header -->
         <div class="w-full bg-yellow-400 text-gray-800 p-2 shadow-md flex justify-between items-center sticky top-0 z-10">
-            <div class="text-sm font-semibold">СЧЕТ: <span id="scoreDisplay" class="text-lg font-extrabold">0</span></div>
-            <div class="text-sm font-semibold">ПРОГРЕСС: <span id="orderProgress" class="text-lg font-extrabold text-red-600">0 / 0</span></div>
+            <div class="text-sm font-semibold">МОНЕТЫ: <span id="scoreDisplay" class="text-lg font-extrabold">0</span></div>
+            <div class="text-sm font-semibold">ЛУЧШИЙ СЧЕТ: <span id="highScoreDisplay" class="text-lg font-extrabold text-red-600">0</span></div>
         </div>
         
-        <!-- Order Display (Visible above canvas) -->
-        <div id="currentOrderDisplay" class="w-full bg-orange-200 p-2 text-center text-sm font-bold text-gray-700">
-            Требуемый торт:
-        </div>
-
-        <!-- Canvas for the conveyor belt and cake -->
+        <!-- Canvas для Платформера -->
         <canvas id="gameCanvas"></canvas>
+
+        <!-- Mobile Controls: УДАЛЕНЫ -->
     </div>
     
-    <!-- 4. SETTINGS SCREEN (НОВЫЙ ЭКРАН) -->
+    <!-- 4. SKINS SCREEN (Заглушка) -->
+    <div id="skins-screen" class="game-screen bg-pink-100 p-8">
+        <h1 class="text-3xl font-black text-orange-600 mb-6 text-center">Скины</h1>
+        
+        <div class="p-6 bg-white rounded-lg shadow-md text-center text-gray-700">
+            <p class="text-xl font-bold text-red-500">В процессе разработки</p>
+            <p class="mt-2">Следите за обновлениями!</p>
+        </div>
+        
+        <button id="backToMenuSkinsButton" class="menu-button bg-pink-500 text-white hover:bg-pink-600 mt-8">
+            НАЗАД В МЕНЮ
+        </button>
+    </div>
+    
+    <!-- 5. SETTINGS SCREEN -->
     <div id="settings-screen" class="game-screen p-8">
         <h1 class="text-3xl font-black text-cyan-600 mb-6 text-center">Настройки</h1>
         
-        <!-- УПРАВЛЕНИЕ МУЗЫКОЙ (НОВЫЕ ЭЛЕМЕНТЫ) -->
-        <div class="w-full max-w-sm p-4 bg-white rounded-lg shadow-md mb-8 text-sm text-gray-700">
-            <p class="text-lg font-semibold mb-3">Музыка и Звук</p>
+        <!-- ГРУППА УПРАВЛЕНИЯ ЗВУКОМ -->
+        <div class="w-full settings-control-group p-4 bg-white rounded-lg shadow-md mb-8 text-sm text-gray-700">
+            <p class="text-lg font-semibold mb-4">Управление Звуком</p>
 
+            <!-- ГРОМКОСТЬ МУЗЫКИ -->
             <div class="flex justify-between items-center mb-4">
-                <label for="volume-slider" class="font-semibold">Громкость:</label>
+                <label for="volume-slider" class="font-semibold">Музыка (BGM):</label>
                 <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.5" class="w-2/3">
             </div>
+            
+            <!-- ГРОМКОСТЬ ЗВУКОВЫХ ЭФФЕКТОВ -->
+            <div class="flex justify-between items-center mb-6">
+                <label for="sfx-volume-slider" class="font-semibold">Общие Звуки (SFX):</label>
+                <input type="range" id="sfx-volume-slider" min="0" max="1" step="0.05" value="0.8" class="w-2/3">
+            </div>
 
-            <button id="toggle-music-btn" class="w-full py-2 rounded-lg font-bold transition-colors duration-150 bg-green-500 hover:bg-green-600 text-white">
-                Музыка: Вкл.
+            <!-- КНОПКА ОТКЛЮЧЕНИЯ ВСЕГО ЗВУКА -->
+            <button id="toggle-all-audio-btn" class="w-full py-2 rounded-lg font-bold transition-colors duration-150 bg-green-500 hover:bg-green-600 text-white">
+                Звук: Вкл.
             </button>
         </div>
+
 
         <!-- Информация о разработке -->
         <div class="w-full max-w-sm p-4 bg-white rounded-lg shadow-md mb-8 text-sm text-gray-700">
@@ -271,7 +302,7 @@
         </button>
     </div>
 
-    <!-- 5. GAME OVER SCREEN -->
+    <!-- 6. GAME OVER SCREEN -->
     <div id="game-over-screen" class="game-screen bg-pink-100 p-8">
         <h1 class="text-5xl font-black text-red-600 mb-4 text-center">ИГРА ОКОНЧЕНА</h1>
         <p class="text-2xl font-bold mb-6">Финальный счет: <span id="finalScoreDisplay" class="text-red-600">0</span></p>
@@ -292,107 +323,87 @@
 
 <!-- Game Script -->
 <script type="module">
-    // Импорт необходимых модулей Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
     // ===============================================
-    // 1. FIREBASE & AUTH SETUP (ВОССТАНОВЛЕНА)
+    // 1. FIREBASE & AUTH SETUP (ЗНАЧИТЕЛЬНО УПРОЩЕНО)
     // ===============================================
-
-    // Конфигурация берется из переменных окружения
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'juniorchef-official';
-    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : JSON.stringify({
-        apiKey: "AIzaSyDGay5I8h4NsgtUaUhCYxfEnig9y0NkD5U",
-        authDomain: "juniorchef-official.firebaseapp.com",
-        projectId: "juniorchef-official",
-        storageBucket: "juniorchef-official.firebasestorage.app",
-        messagingSenderId: "400098008130",
-        appId: "1:400098008130:web:d046c604f331902d2e61db",
-        measurementId: "G-NH52VFKRTB"
-    }));
-    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
     
-    // Инициализация сервисов Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-
     let userId = null;
-    let isAuthReady = false;
+    let isAuthReady = true; 
 
-    // Аутентификация
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            userId = user.uid;
-        } else {
-            if (!initialAuthToken) {
-                try {
-                    const anonymousUser = await signInAnonymously(auth);
-                    userId = anonymousUser.user.uid;
-                } catch(e) {
-                    console.error("Anonymous Sign-In failed:", e);
-                }
-            }
+    // Имитация аутентификации для отображения ID в настройках
+    setTimeout(() => {
+        userId = 'MOCK-' + Math.random().toString(36).substring(2, 12);
+        const displayElement = document.getElementById('displayUserIdSettings');
+        if (displayElement) {
+             displayElement.textContent = userId;
         }
-        isAuthReady = true;
-        document.getElementById('displayUserIdSettings').textContent = userId || 'Гостевой режим (ID: N/A)'; 
-    });
-
-    if (initialAuthToken) {
-        signInWithCustomToken(auth, initialAuthToken).catch(e => console.error("Custom Token Sign-In failed:", e));
-    }
+    }, 500);
 
 
     // ===============================================
     // 2. SCREEN MANAGEMENT & AUDIO CONTROL
     // ===============================================
     
+    // Глобальные переменные игры 
+    let gameLoopRef = null;
+    let isGameRunning = false;
+    let score = 0; 
+    let highScore = 0; 
+    
     const BGM = document.getElementById('background-music');
     const volumeSlider = document.getElementById('volume-slider');
-    const toggleMusicBtn = document.getElementById('toggle-music-btn');
-    
-    // Флаг, чтобы не пытаться воспроизвести музыку повторно до взаимодействия
+    const sfxVolumeSlider = document.getElementById('sfx-volume-slider');
+    const toggleAllAudioBtn = document.getElementById('toggle-all-audio-btn');
+
     let musicAttemptedToPlay = false; 
+    let sfxVolume = 0.8; 
+    let bgmVolume = 0.5;
+    let isAudioGloballyEnabled = true;
 
     // Настройка аудио при загрузке
     BGM.volume = 0.5; 
     
     volumeSlider.addEventListener('input', (e) => {
-        BGM.volume = e.target.value;
-    });
-
-    toggleMusicBtn.addEventListener('click', () => {
-        if (BGM.paused) {
-            // Если пользователь нажимает "Вкл" — это явное взаимодействие.
-            BGM.play().catch(e => console.error("Audio playback failed:", e));
-            toggleMusicBtn.textContent = 'Музыка: Вкл.';
-            toggleMusicBtn.classList.replace('bg-red-500', 'bg-green-500');
-            musicAttemptedToPlay = true; // Считаем, что пользователь взаимодействовал
-        } else {
-            BGM.pause();
-            toggleMusicBtn.textContent = 'Музыка: Выкл.';
-            toggleMusicBtn.classList.replace('bg-green-500', 'bg-red-500');
+        bgmVolume = parseFloat(e.target.value);
+        if (isAudioGloballyEnabled) {
+            BGM.volume = bgmVolume;
         }
     });
     
-    // Исправленная функция manageMusic
+    sfxVolumeSlider.addEventListener('input', (e) => {
+        sfxVolume = parseFloat(e.target.value);
+    });
+
+    toggleAllAudioBtn.addEventListener('click', () => {
+        isAudioGloballyEnabled = !isAudioGloballyEnabled;
+        
+        if (isAudioGloballyEnabled) {
+            // Включаем
+            if (BGM.paused) {
+                BGM.volume = bgmVolume; 
+                BGM.play().catch(e => console.error("Audio playback failed:", e));
+            }
+            toggleAllAudioBtn.textContent = 'Звук: Вкл.';
+            toggleAllAudioBtn.classList.replace('bg-red-500', 'bg-green-500');
+        } else {
+            // Выключаем
+            BGM.pause();
+            toggleAllAudioBtn.textContent = 'Звук: Выкл.';
+            toggleAllAudioBtn.classList.replace('bg-green-500', 'bg-red-500');
+        }
+    });
+    
     function manageMusic(screenName) {
-         if (screenName === 'menu') {
-             // Пытаемся запустить музыку только один раз, после первого взаимодействия
+         if (screenName === 'menu' && isAudioGloballyEnabled) {
              if (!musicAttemptedToPlay && BGM.paused) {
-                  // Пытаемся запустить, но не прерываем, если не получилось. 
                   BGM.play().then(() => {
                       musicAttemptedToPlay = true;
                   }).catch(e => {
-                       // Silent fail or log the specific error that it needs user interaction
                        console.warn("Autoplay was blocked. Music will start after user interaction.");
-                       musicAttemptedToPlay = true; // Считаем попытку за взаимодействие
+                       musicAttemptedToPlay = true;
                   });
              }
          }
-         // Если пользователь ее выключил/включил через кнопку, состояние BGM.paused управляет воспроизведением.
     }
 
 
@@ -401,7 +412,8 @@
         menu: document.getElementById('main-menu-screen'),
         game: document.getElementById('game-view'),
         gameOver: document.getElementById('game-over-screen'),
-        settings: document.getElementById('settings-screen') // Новый экран
+        settings: document.getElementById('settings-screen'),
+        skins: document.getElementById('skins-screen') 
     };
     let currentScreen = 'intro';
 
@@ -411,7 +423,7 @@
         });
         currentScreen = name;
         
-        // Управление конфетти и музыкой
+        // Управление конфетти
         if (name === 'menu') {
             startConfetti();
         } else {
@@ -447,13 +459,15 @@
         document.getElementById('splashMessage').textContent = 'Студия Asonik представляет...';
         document.getElementById('splashMessage').style.visibility = 'hidden'; 
         
-        // КРИТИЧНОЕ ИСПРАВЛЕНИЕ: Это первое взаимодействие, запускаем музыку здесь!
-        BGM.play().then(() => {
-            musicAttemptedToPlay = true;
-        }).catch(e => {
-            console.warn("Music was blocked, requiring another user click.");
-            musicAttemptedToPlay = true;
-        });
+        // Первое взаимодействие: запускаем музыку здесь!
+        if (isAudioGloballyEnabled) {
+             BGM.play().then(() => {
+                musicAttemptedToPlay = true;
+             }).catch(e => {
+                console.warn("Music was blocked, requiring another user click.");
+                musicAttemptedToPlay = true;
+             });
+        }
 
         // Автоматический переход в меню через 3 секунды
         setTimeout(() => {
@@ -468,9 +482,9 @@
         }
     }
 
-    // --- CONFETTI LOGIC (Улучшенная логика) ---
+    // --- CONFETTI LOGIC (ИСПРАВЛЕНО) ---
     const confettiContainer = document.getElementById('confetti-container');
-    const CONFETTI_COLORS = ['#FFC0CB', '#FFD700', '#ADD8E6', '#90EE90', '#DC143C'];
+    const CONFETTI_COLORS = ['#FFC0CB', '#FFD700', '#ADD8E6', '#90EE90', '#FFA07A'];
     let confettiInterval = null;
 
     function createConfetto() {
@@ -482,12 +496,16 @@
         confetto.style.width = `${size}px`;
         confetto.style.height = `${size / 2}px`; 
         
-        confetto.style.left = `${Math.random() * 100}%`;
+        // Устанавливаем переменные CSS для анимации
+        const startX = `${Math.random() * 100}%`;
+        const endX = `${Math.random() * 100}%`; 
+        confetto.style.setProperty('--start-x', startX);
+        confetto.style.setProperty('--end-x', endX);
+
+        confetto.style.left = startX;
         
-        confetto.style.animationDuration = `${Math.random() * 4 + 4}s`; 
+        confetto.style.animationDuration = `${Math.random() * 4 + 4}s`; // 4 to 8 seconds
         confetto.style.animationDelay = `-${Math.random() * 8}s`; 
-        
-        confetto.style.transform = `rotate(${Math.random() * 360}deg)`;
         
         confettiContainer.appendChild(confetto);
 
@@ -544,10 +562,16 @@
     document.getElementById('playButton').addEventListener('click', () => {
         showScreen('game');
     });
+    document.getElementById('skinsButton').addEventListener('click', () => {
+        showScreen('skins');
+    });
     document.getElementById('settingsButton').addEventListener('click', () => {
         showScreen('settings');
     });
     document.getElementById('backToMenuButton').addEventListener('click', () => {
+        showScreen('menu');
+    });
+    document.getElementById('backToMenuSkinsButton').addEventListener('click', () => {
         showScreen('menu');
     });
     document.getElementById('toMenuButton').addEventListener('click', () => {
@@ -559,91 +583,138 @@
 
 
     // ===============================================
-    // 3. GAME LOGIC (Conveyor Line) - ВОССТАНОВЛЕНА
+    // 3. GAME LOGIC (Platformer - НОВАЯ МЕХАНИКА)
     // ===============================================
 
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const scoreDisplay = document.getElementById('scoreDisplay');
-    const orderProgressDisplay = document.getElementById('orderProgress');
-    const currentOrderDisplay = document.getElementById('currentOrderDisplay');
+    const highScoreDisplay = document.getElementById('highScoreDisplay');
     const finalScoreDisplay = document.getElementById('finalScoreDisplay');
 
-    // Game state variables
-    let score = 0;
-    let gameLoopRef = null;
-    let isGameRunning = false;
-
-    let currentCake = []; 
-    let targetOrder = []; 
-    let ingredientsOnBelt = []; 
-    let currentOrderStep = 0; 
-
-    // Constants
-    const BLOCK_HEIGHT = 40;
-    const BLOCK_WIDTH = 80;
-    let BELT_SPEED = 1.5; 
-    
-    // Позиции
-    let CONVEYOR_Y = 0; 
-    let DROP_ZONE_X = 0; 
-    let CAKE_BASE_Y = 0;
-    const CAKE_BASE_CENTER_X_OFFSET = -20; 
-
-    // Типы ингредиентов (Цветной режим)
-    const INGREDIENTS = {
-        'база': { display: 'КОРЖ', color: '#8B4513', img: { isFallback: true, color: '#8B4513' } },
-        'ваниль': { display: 'ВАНИЛЬ', color: '#FFF8DC', img: { isFallback: true, color: '#FFF8DC' } },
-        'шоколад': { display: 'ШОКОЛАД', color: '#A0522D', img: { isFallback: true, color: '#A0522D' } },
-        'глазурь': { display: 'ГЛАЗУРЬ', color: '#ADD8E6', img: { isFallback: true, color: '#ADD8E6' } },
-        'вишня': { display: 'ВИШНЯ', color: '#DC143C', img: { isFallback: true, color: '#DC143C' } }
-    };
-    const INGREDIENT_TYPES = Object.keys(INGREDIENTS);
-    let lastIngredientSpawnTime = 0;
-    const SPAWN_INTERVAL = 2000; 
-
-    
-    // Adjust canvas size dynamically
+    // -- ФУНКЦИИ ГРАФИКИ ИЗМЕНЕНИЯ РАЗМЕРА --
     function resizeCanvas() {
         if (currentScreen !== 'game') return;
 
         const gameView = document.getElementById('game-view');
-        const headerHeight = gameView.children[0].offsetHeight + gameView.children[1].offsetHeight;
+        const headerHeight = gameView.children[0].offsetHeight; 
         canvas.width = gameView.clientWidth;
         canvas.height = gameView.clientHeight - headerHeight;
         
-        CONVEYOR_Y = canvas.height - BLOCK_HEIGHT - 30; 
-        DROP_ZONE_X = canvas.width * 0.7 + CAKE_BASE_CENTER_X_OFFSET; 
-        CAKE_BASE_Y = canvas.height - 30; 
+        // Initial setup for the first base block if stack is empty
+        if (platforms.length === 0) {
+            createWorld();
+        }
         
         if (isGameRunning) {
-            draw();
+             draw();
         }
     }
     window.addEventListener('resize', resizeCanvas);
     
+    // -- ПЕРСОНАЖ --
+    const player = {
+        x: 50,
+        y: 0,
+        width: 20,
+        height: 20,
+        color: '#ff6666', // Красный квадрат (пока)
+        vy: 0, // Скорость по Y (гравитация/прыжок)
+        vx: 0, // Скорость по X
+        onGround: false,
+        onLadder: false,
+        speed: 4,
+        jumpPower: 12,
+        gravity: 0.5,
+        baseJumpPower: 12 
+    };
 
-    // --- GAME FLOW (Core) ---
+    // -- ИГРОВОЙ МИР --
+    const COLORS = ['#FFC0CB', '#FFD700', '#ADD8E6', '#90EE90', '#FFA07A']; // Pink, Gold, Blue, Green, Salmon
+
+    let platforms = []; // Торты (прямоугольники)
+    let ladders = []; // Лестницы
+    let enemies = []; // Враждебные персонажи (красные точки)
+    let coins = []; // Монетки
+    let trampolines = []; // Батуты (новое)
+    let scrollSpeed = 0; // Скорость сдвига мира вниз
+
+    // -- УПРАВЛЕНИЕ --
+    const keys = {
+        left: false,
+        right: false,
+        jump: false,
+        up: false,
+        down: false,
+        // Флаг для управления через тач
+        touchLeft: false,
+        touchRight: false,
+        touchJump: false,
+        touchUp: false,
+        touchDown: false,
+        
+    };
+
+    // --- ИНИЦИАЛИЗАЦИЯ МИРА ---
+
+    function createWorld() {
+        platforms = [
+            // Нижняя платформа (торт) - спавним внизу
+            { x: 0, y: canvas.height - 30, w: canvas.width, h: 30, color: '#fdd835' },
+            // Центральный торт 1
+            { x: 50, y: canvas.height - 120, w: 100, h: 30, color: '#c4e3b1' },
+            // Центральный торт 2
+            { x: canvas.width - 150, y: canvas.height - 220, w: 120, h: 30, color: '#ffb3c1' },
+            // Верхний торт
+            { x: 100, y: canvas.height - 350, w: 150, h: 30, color: '#b3e5fc' }
+        ];
+
+        ladders = [
+            // Лестница 1
+            { x: 80, y: canvas.height - 120, w: 15, h: 100, color: '#a0522d' },
+            // Лестница 2
+            { x: canvas.width - 80, y: canvas.height - 220, w: 15, h: 100, color: '#a0522d' }
+        ];
+        
+        enemies = [
+             // Враг 1 (движется по нижней платформе)
+             { x: 200, y: platforms[0].y - 10, w: 10, h: 10, color: '#ff0000', vx: 1 }
+        ];
+
+        trampolines = [
+             // Батут 1
+            { x: 180, y: canvas.height - 60, w: 40, h: 10, color: '#00ffff', jumpBoost: 1.8 }
+        ];
+
+        player.x = 50;
+        // ИСПРАВЛЕНО: Персонаж стартует на нижней платформе
+        player.y = platforms[0].y - player.height;
+        player.vy = 0;
+        player.onGround = true;
+    }
+
+
+    // --- GAME FLOW ---
 
     function startGame() {
-        if (!assetsLoaded) {
-            console.error("Assets not loaded yet!");
-            return;
-        }
+        if (!assetsLoaded) return;
         if (gameLoopRef) cancelAnimationFrame(gameLoopRef);
-        score = 0;
-        currentOrderStep = 0;
-        ingredientsOnBelt = [];
-        currentCake = [];
-        isGameRunning = true;
-        BELT_SPEED = 1.5;
         
-        generateNewOrder();
+        score = 0;
+        highScore = 0; 
+        isGameRunning = true;
+        scrollSpeed = 0;
+        
+        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ БАГА "ПРИЗРАК": Сброс всех флагов управления
+        keys.left = keys.right = keys.jump = keys.up = keys.down = false;
+        keys.touchLeft = keys.touchRight = keys.touchJump = keys.touchUp = keys.touchDown = false;
+        
+        createWorld();
         resizeCanvas(); 
         
         gameLoopRef = requestAnimationFrame(gameLoop);
     }
-    
+
     function gameOver() {
         isGameRunning = false;
         if (gameLoopRef) cancelAnimationFrame(gameLoopRef);
@@ -651,239 +722,355 @@
         finalScoreDisplay.textContent = score;
         showScreen('gameOver');
     }
+    
+    // --- ГЕНЕРАЦИЯ БЕСКОНЕЧНОГО МИРА ---
 
-    // --- ORDER MANAGEMENT ---
+    function generateNewPlatforms(offsetY) {
+        // Простейшая генерация: случайное расположение платформ
+        const newPlatformY = offsetY - 150; // Генерируем выше, чем предыдущая точка генерации
 
-    function generateNewOrder() {
-        targetOrder = ['база'];
-        const numLayers = 2 + Math.floor(Math.random() * 3); 
-        
-        for (let i = 0; i < numLayers; i++) {
-            let randomType;
-            do {
-                randomType = INGREDIENT_TYPES[1 + Math.floor(Math.random() * (INGREDIENT_TYPES.length - 1))];
-            } while (targetOrder.length > 1 && randomType === targetOrder[targetOrder.length - 1]); 
-            
-            targetOrder.push(randomType);
-        }
-        
-        currentOrderStep = 0;
-        currentCake = [];
-        updateOrderDisplay();
-        
-        BELT_SPEED = Math.min(BELT_SPEED + 0.1, 4);
-    }
-
-    function updateOrderDisplay() {
-        let text = 'Требуемый торт: ';
-        let progressHtml = '';
-        
-        targetOrder.forEach((type, index) => {
-            const isCurrent = index === currentOrderStep;
-            const status = index < currentOrderStep ? '✅' : isCurrent ? '🟡' : '⚫';
-            progressHtml += `<span class="px-1">${status}</span>`;
-            
-            const colorClass = index < currentOrderStep ? 'text-green-600' : (isCurrent ? 'text-red-600' : 'text-gray-700');
-            text += `<span class="${colorClass}">${INGREDIENTS[type].display}</span> `;
-            if (index < targetOrder.length - 1) text += '-> ';
+        // Платформа (торт)
+        platforms.push({
+            x: Math.random() * (canvas.width - 150) + 50, 
+            y: newPlatformY, 
+            w: Math.random() * 80 + 80, 
+            h: 30, 
+            color: COLORS[Math.floor(Math.random() * COLORS.length)] 
         });
         
-        currentOrderDisplay.innerHTML = text; 
-        orderProgressDisplay.innerHTML = progressHtml;
-    }
-    
-    function completeOrder() {
-        score += targetOrder.length * 10; 
-        generateNewOrder();
-    }
-
-    // --- INGREDIENT SPAWNING ---
-
-    function spawnIngredient(timestamp) {
-        const dynamicInterval = Math.max(1000, SPAWN_INTERVAL - score * 50);
-
-        if (timestamp - lastIngredientSpawnTime > dynamicInterval) {
-            const typeIndex = Math.floor(Math.random() * (INGREDIENT_TYPES.length));
-            const randomType = INGREDIENT_TYPES[typeIndex];
-
-            ingredientsOnBelt.push({
-                type: randomType,
-                x: -BLOCK_WIDTH, 
-                y: CONVEYOR_Y,
-                width: BLOCK_WIDTH,
-                color: INGREDIENTS[randomType].color, 
-                isDropped: false
+        // Лестница (шанс 30%)
+        if (Math.random() < 0.3) {
+            const lastP = platforms[platforms.length - 1];
+            ladders.push({
+                x: lastP.x + lastP.w / 2 - 7.5, // Центр платформы
+                y: lastP.y,
+                w: 15,
+                h: 100,
+                color: '#a0522d'
             });
-            lastIngredientSpawnTime = timestamp;
+        }
+        
+        // Батут (шанс 20%)
+        if (Math.random() < 0.2) {
+             trampolines.push({
+                x: Math.random() * (canvas.width - 60) + 30,
+                y: newPlatformY + 30, // Снизу платформы или отдельно
+                w: 40,
+                h: 10,
+                color: '#00ffff',
+                jumpBoost: 1.8
+            });
         }
     }
 
-    // --- GAME INPUT (Drop action) ---
 
-    if (canvas) canvas.addEventListener('click', handleDrop);
-    
-    function handleDrop(event) {
-        if (!isGameRunning || currentScreen !== 'game') return;
+    // --- UPDATE ---
 
-        const rect = canvas.getBoundingClientRect();
-        const clickX = event.clientX - rect.left;
-        const clickY = event.clientY - rect.top;
+    function update() {
+        if (!isGameRunning) return;
 
-        let clickedIngredient = null;
-        for (const ing of ingredientsOnBelt) {
-            if (!ing.isDropped && 
-                clickX >= ing.x && 
-                clickX <= ing.x + BLOCK_WIDTH && 
-                clickY >= ing.y && 
-                clickY <= ing.y + BLOCK_HEIGHT) {
-                clickedIngredient = ing;
-                break;
+        // 1. Сброс состояния
+        player.onGround = false;
+        player.onLadder = false;
+
+        // 2. Управление движением (Объединяем клавиатуру и тач)
+        player.vx = 0;
+        const moveLeft = keys.left || keys.touchLeft;
+        const moveRight = keys.right || keys.touchRight;
+        
+        if (moveLeft) player.vx = -player.speed;
+        if (moveRight) player.vx = player.speed;
+
+        // 3. Прыжок/Вверх (Объединяем)
+        const shouldJump = keys.jump || keys.touchJump;
+        const shouldClimbUp = keys.up || keys.touchUp;
+        const shouldClimbDown = keys.down || keys.touchDown;
+
+        if (shouldJump && player.onGround) {
+            player.vy = -player.jumpPower;
+            player.onGround = false;
+            // После прыжка сбрасываем флаг, чтобы не прыгать бесконечно
+            keys.jump = false; 
+            keys.touchJump = false;
+        }
+        
+        // 4. Физика: Гравитация и Движение
+        if (!player.onLadder) {
+            player.vy += player.gravity;
+            player.y += player.vy;
+        }
+
+        player.x += player.vx;
+        
+        // 5. ВЕРТИКАЛЬНЫЙ СКРОЛЛ (Бесконечное восхождение)
+        const scrollThreshold = canvas.height * 0.4; // 40% от верха экрана
+
+        if (player.y < scrollThreshold) {
+            // Игрок поднимается выше центра, сдвигаем мир вниз
+            const scrollAmount = scrollThreshold - player.y;
+            player.y = scrollThreshold;
+            
+            // Сдвигаем все объекты вниз
+            platforms.forEach(p => p.y += scrollAmount);
+            ladders.forEach(l => l.y += scrollAmount);
+            enemies.forEach(e => e.y += scrollAmount);
+            trampolines.forEach(t => t.y += scrollAmount);
+            // score++; // Увеличиваем счет за восхождение
+        }
+
+        // ГЕНЕРАЦИЯ: Если самая высокая платформа (самая нижняя координата Y) находится ниже нуля, генерируем новые
+        if (platforms.length > 0 && platforms[platforms.length - 1].y > -50) {
+            generateNewPlatforms(platforms[platforms.length - 1].y);
+        }
+        // Удаление старых платформ, которые ушли за нижний край
+        platforms = platforms.filter(p => p.y < canvas.height + 50);
+
+
+        // 6. ОБНАРУЖЕНИЕ СТОЛКНОВЕНИЙ
+        
+        // Столкновение с Платформами (торты)
+        for (const platform of platforms) {
+            // Проверка, не столкнулся ли игрок с платформой снизу
+            if (player.y + player.height > platform.y && 
+                player.y < platform.y && // Игрок падает сверху
+                player.x + player.width > platform.x && 
+                player.x < platform.x + platform.w &&
+                player.vy >= 0) // Только если движется вниз
+            {
+                player.y = platform.y - player.height;
+                player.vy = 0;
+                player.onGround = true;
             }
         }
         
-        if (!clickedIngredient) return; 
-
-        const requiredType = targetOrder[currentOrderStep];
+        // Столкновение с Лестницами
+        let touchingLadder = false;
+        for (const ladder of ladders) {
+             if (player.x + player.width > ladder.x && 
+                 player.x < ladder.x + ladder.w && 
+                 player.y + player.height > ladder.y && 
+                 player.y < ladder.y + ladder.h) 
+             {
+                 touchingLadder = true;
+             }
+        }
+        player.onLadder = touchingLadder;
         
-        if (clickedIngredient.type === requiredType) {
-            
-            clickedIngredient.isDropped = true;
-
-            const newBlock = {
-                type: clickedIngredient.type,
-                width: BLOCK_WIDTH,
-            };
-            
-            currentCake.push(newBlock);
-            
-            currentOrderStep++;
-            score += 5; 
-            updateOrderDisplay();
-            
-            if (currentOrderStep === targetOrder.length) {
-                setTimeout(completeOrder, 500); 
-            }
-            
-        } else {
+        // Управление на Лестнице
+        if (player.onLadder) {
+             player.vy = 0; // Отключаем гравитацию на лестнице
+             if (shouldClimbUp) { 
+                 player.y -= player.speed / 2;
+             } else if (shouldClimbDown) {
+                 player.y += player.speed / 2;
+             }
+        } 
+        
+        // Столкновение с Батутами (новое)
+        for (const tramp of trampolines) {
+             if (player.y + player.height > tramp.y &&
+                 player.y < tramp.y &&
+                 player.x + player.width > tramp.x &&
+                 player.x < tramp.x + tramp.w &&
+                 player.vy >= 0) {
+                 // Батут! Увеличиваем силу прыжка
+                 player.vy = -(player.jumpPower * tramp.jumpBoost);
+             }
+        }
+        
+        // 7. Столкновение с Врагами (красные точки)
+        for (const enemy of enemies) {
+             if (player.x < enemy.x + enemy.w &&
+                 player.x + player.width > enemy.x &&
+                 player.y < enemy.y + enemy.h &&
+                 player.y + player.height > enemy.y) {
+                 // Враг! Game Over.
+                 gameOver();
+                 return;
+             }
+        }
+        
+        // 8. Смерть от падения (на дно экрана)
+        if (player.y > canvas.height + 50) {
             gameOver();
-            console.log(`Wrong ingredient dropped! Needed: ${INGREDIENTS[requiredType].display}, Got: ${INGREDIENTS[clickedIngredient.type].display}`);
         }
+        
+        // 9. Движение врагов (простейшее)
+        for (const enemy of enemies) {
+            enemy.x += enemy.vx;
+            // Простая смена направления при столкновении с границами платформы (пока не реализовано)
+        }
+
+
+        // 10. Ограничение движения по горизонтали
+        if (player.x < 0) player.x = 0;
+        if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
     }
 
 
-    // --- DRAWING FUNCTIONS ---
-
-    function drawBlock(block, xPosition, yPosition) {
-        const asset = INGREDIENTS[block.type];
-
-        // Draw colored block
-        ctx.fillStyle = asset.color;
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-        ctx.shadowBlur = 4;
-        ctx.shadowOffsetY = 2;
-
-        ctx.fillRect(xPosition, yPosition, BLOCK_WIDTH, BLOCK_HEIGHT);
-        
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetY = 0;
-        
-        ctx.strokeStyle = '#333';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(xPosition, yPosition, BLOCK_WIDTH, BLOCK_HEIGHT);
-        
-        // Add text for prototype
-        ctx.fillStyle = '#333';
-        ctx.font = '10px Inter';
-        ctx.textAlign = 'center';
-        ctx.fillText(INGREDIENTS[block.type].display, xPosition + BLOCK_WIDTH / 2, yPosition + BLOCK_HEIGHT / 2 + 4);
-    }
+    // --- DRAWING ---
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // 1. Draw Conveyor Belt 
-        ctx.fillStyle = '#654321'; 
-        ctx.fillRect(0, CONVEYOR_Y + BLOCK_HEIGHT, canvas.width, 30);
-        
-        // 2. Draw Built Cake (fixed position near drop zone)
-        if (currentCake.length > 0) {
-            currentCake.forEach((block, index) => {
-                const yPos = CAKE_BASE_Y - (currentCake.length - index) * BLOCK_HEIGHT;
-                const xPos = DROP_ZONE_X - BLOCK_WIDTH / 2;
-                drawBlock(block, xPos, yPos);
-            });
+
+        // 1. Рисуем Платформы (Торты)
+        for (const p of platforms) {
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, p.w, p.h);
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Inter';
+            ctx.fillText("Торт", p.x + 5, p.y + p.h / 2 + 4);
+        }
+
+        // 2. Рисуем Лестницы
+        for (const l of ladders) {
+            ctx.fillStyle = l.color;
+            ctx.fillRect(l.x, l.y, l.w, l.h);
         }
         
-        // 3. Draw Ingredients on Belt
-        ingredientsOnBelt.forEach(ing => {
-            if (!ing.isDropped) {
-               drawBlock(ing, ing.x, CONVEYOR_Y);
-            }
-        });
+        // 3. Рисуем Батуты
+        for (const t of trampolines) {
+             ctx.fillStyle = t.color;
+             ctx.fillRect(t.x, t.y, t.w, t.h);
+             ctx.fillStyle = '#333';
+             ctx.font = '12px Inter';
+             ctx.fillText("Батут", t.x + 5, t.y + t.h / 2 + 4);
+        }
 
-        scoreDisplay.textContent = score;
-    }
-
-    // --- GAME UPDATE ---
-
-    function update(timestamp) {
-        spawnIngredient(timestamp);
+        // 4. Рисуем Врагов (Красные точки)
+        for (const e of enemies) {
+            ctx.fillStyle = e.color;
+            ctx.fillRect(e.x, e.y, e.w, e.h);
+        }
         
-        ingredientsOnBelt.forEach(ing => {
-            if (!ing.isDropped) {
-                ing.x += BELT_SPEED;
-            }
-        });
-
-        ingredientsOnBelt = ingredientsOnBelt.filter(ing => {
-            if (!ing.isDropped && ing.x > canvas.width) {
-                gameOver();
-                return false;
-            }
-            return ing.x < canvas.width;
-        });
+        // 5. Рисуем Персонажа
+        ctx.fillStyle = player.color;
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+        
+        // Обновляем счет
+        scoreDisplay.textContent = score;
+        highScoreDisplay.textContent = highScore;
     }
+
 
     // --- GAME LOOP ---
-
     function gameLoop(timestamp) {
         if (!isGameRunning) return;
         
-        update(timestamp);
+        update();
         draw();
         
         gameLoopRef = requestAnimationFrame(gameLoop);
     }
     
+    // --- INPUT HANDLERS (Клавиатура) ---
+    window.addEventListener('keydown', (e) => {
+        if (currentScreen !== 'game') return;
+
+        switch (e.key) {
+            case 'ArrowLeft':
+            case 'a':
+                keys.left = true;
+                break;
+            case 'ArrowRight':
+            case 'd':
+                keys.right = true;
+                break;
+            case 'ArrowUp':
+            case 'w':
+            case ' ':
+                keys.jump = true;
+                keys.up = true; // Для лестниц
+                break;
+            case 'ArrowDown':
+            case 's':
+                 keys.down = true; // Для лестниц
+                 break;
+        }
+    });
+
+    window.addEventListener('keyup', (e) => {
+        if (currentScreen !== 'game') return;
+
+        switch (e.key) {
+            case 'ArrowLeft':
+            case 'a':
+                keys.left = false;
+                break;
+            case 'ArrowRight':
+            case 'd':
+                keys.right = false;
+                break;
+            case 'ArrowUp':
+            case 'w':
+            case ' ':
+                keys.jump = false;
+                keys.up = false;
+                break;
+            case 'ArrowDown':
+            case 's':
+                keys.down = false;
+                break;
+        }
+    });
+    
+    // --- INPUT HANDLERS (Сенсорное управление) ---
+
+    canvas.addEventListener('touchstart', (e) => {
+        if (currentScreen !== 'game' || e.touches.length === 0) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        const touchX = e.touches[0].clientX - rect.left;
+        const touchY = e.touches[0].clientY - rect.top;
+        
+        const centerLine = canvas.width / 2;
+
+        e.preventDefault(); 
+        
+        // Сброс флагов тач-управления при старте нового касания
+        keys.touchLeft = keys.touchRight = keys.touchJump = keys.touchUp = keys.touchDown = false;
+        
+        // 1. Прыжок (верхняя часть экрана или любая часть, если игрок на земле)
+        if (player.onGround || player.onLadder) {
+            keys.touchJump = true;
+        }
+
+        // 2. Движение влево
+        if (touchX < centerLine) {
+            keys.touchLeft = true;
+        } 
+        // 3. Движение вправо
+        else {
+            keys.touchRight = true;
+        }
+        
+        // 4. Движение вниз (для лестниц, если нажато внизу)
+        if (touchY > canvas.height * 0.7 && player.onLadder) {
+             keys.touchDown = true;
+        } else if (touchY < canvas.height * 0.3 && player.onLadder) {
+             keys.touchUp = true;
+        }
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+        if (currentScreen !== 'game') return;
+
+        // При отпускании любого пальца сбрасываем все флаги тач-управления
+        keys.touchLeft = false;
+        keys.touchRight = false;
+        keys.touchJump = false;
+        keys.touchUp = false;
+        keys.touchDown = false;
+        
+        // Мы не сбрасываем флаги клавиатуры здесь!
+    });
+
+
     // Ensure the first screen is shown on load and start asset loading
     window.onload = function () {
         loadAssets(); 
         showScreen('intro');
     }
-
-    // ===============================================
-    // 4. FIREBASE HIGH SCORE FUNCTIONS (Future step)
-    // ===============================================
-    /*
-    async function saveHighScore(finalScore) {
-        if (!isAuthReady || !userId) {
-            console.warn("Auth not ready or User ID missing. Cannot save score.");
-            return;
-        }
-
-        try {
-            await addDoc(collection(db, SCORES_COLLECTION_PATH), {
-                userId: userId,
-                score: finalScore,
-                timestamp: Date.now()
-            });
-            console.log("Score saved successfully!");
-        } catch (e) {
-            console.error("Error saving score: ", e);
-        }
-    }
-    */
 </script>
 </body>
 </html>
