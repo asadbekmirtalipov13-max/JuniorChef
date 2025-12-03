@@ -660,13 +660,13 @@
     function createWorld() {
         platforms = [
             // Нижняя платформа (торт) - спавним внизу
-            { x: 0, y: canvas.height - 30, w: canvas.width, h: 30, color: '#fdd835' },
+            { x: 0, y: canvas.height - 30, w: canvas.width, h: 30, color: COLORS[0] },
             // Центральный торт 1
-            { x: 50, y: canvas.height - 120, w: 100, h: 30, color: '#c4e3b1' },
+            { x: 50, y: canvas.height - 120, w: 100, h: 30, color: COLORS[1] },
             // Центральный торт 2
-            { x: canvas.width - 150, y: canvas.height - 220, w: 120, h: 30, color: '#ffb3c1' },
+            { x: canvas.width - 150, y: canvas.height - 220, w: 120, h: 30, color: COLORS[2] },
             // Верхний торт
-            { x: 100, y: canvas.height - 350, w: 150, h: 30, color: '#b3e5fc' }
+            { x: 100, y: canvas.height - 350, w: 150, h: 30, color: COLORS[3] }
         ];
 
         ladders = [
@@ -687,7 +687,7 @@
         ];
 
         player.x = 50;
-        // ИСПРАВЛЕНО: Персонаж стартует на нижней платформе
+        // Персонаж стартует на нижней платформе
         player.y = platforms[0].y - player.height;
         player.vy = 0;
         player.onGround = true;
@@ -710,9 +710,11 @@
         keys.touchLeft = keys.touchRight = keys.touchJump = keys.touchUp = keys.touchDown = false;
         
         createWorld();
-        resizeCanvas(); 
-        
-        gameLoopRef = requestAnimationFrame(gameLoop);
+        // ВАЖНОЕ ИСПРАВЛЕНИЕ VERCEL: Добавляем задержку перед resize, чтобы DOM обновился
+        setTimeout(() => {
+             resizeCanvas(); 
+             gameLoopRef = requestAnimationFrame(gameLoop);
+        }, 50); // Небольшая задержка
     }
 
     function gameOver() {
@@ -726,8 +728,7 @@
     // --- ГЕНЕРАЦИЯ БЕСКОНЕЧНОГО МИРА ---
 
     function generateNewPlatforms(offsetY) {
-        // Простейшая генерация: случайное расположение платформ
-        const newPlatformY = offsetY - 150; // Генерируем выше, чем предыдущая точка генерации
+        const newPlatformY = offsetY - 150; 
 
         // Платформа (торт)
         platforms.push({
@@ -786,10 +787,12 @@
         const shouldClimbUp = keys.up || keys.touchUp;
         const shouldClimbDown = keys.down || keys.touchDown;
 
+        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ ЛОГИКИ ПРЫЖКА
         if (shouldJump && player.onGround) {
             player.vy = -player.jumpPower;
             player.onGround = false;
-            // После прыжка сбрасываем флаг, чтобы не прыгать бесконечно
+            
+            // Сбрасываем флаги прыжка СРАЗУ ПОСЛЕ ИСПОЛЬЗОВАНИЯ
             keys.jump = false; 
             keys.touchJump = false;
         }
@@ -859,9 +862,9 @@
         // Управление на Лестнице
         if (player.onLadder) {
              player.vy = 0; // Отключаем гравитацию на лестнице
-             if (shouldClimbUp) { 
+             if (shouldClimbUp) { // Используем объединенный флаг
                  player.y -= player.speed / 2;
-             } else if (shouldClimbDown) {
+             } else if (shouldClimbDown) { // Используем объединенный флаг
                  player.y += player.speed / 2;
              }
         } 
@@ -1030,11 +1033,11 @@
         // Сброс флагов тач-управления при старте нового касания
         keys.touchLeft = keys.touchRight = keys.touchJump = keys.touchUp = keys.touchDown = false;
         
-        // 1. Прыжок (верхняя часть экрана или любая часть, если игрок на земле)
-        if (player.onGround || player.onLadder) {
-            keys.touchJump = true;
-        }
-
+        // 1. Прыжок (КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Прыжок при любом касании, если на земле)
+        if (player.onGround && !player.onLadder) {
+            keys.touchJump = true; // Мгновенный прыжок
+        } 
+        
         // 2. Движение влево
         if (touchX < centerLine) {
             keys.touchLeft = true;
@@ -1044,11 +1047,15 @@
             keys.touchRight = true;
         }
         
-        // 4. Движение вниз (для лестниц, если нажато внизу)
-        if (touchY > canvas.height * 0.7 && player.onLadder) {
-             keys.touchDown = true;
-        } else if (touchY < canvas.height * 0.3 && player.onLadder) {
-             keys.touchUp = true;
+        // 4. Движение по лестнице
+        if (player.onLadder) {
+             if (touchY < canvas.height * 0.5) {
+                 keys.touchUp = true;
+             } else if (touchY > canvas.height * 0.7) {
+                 keys.touchDown = true;
+             }
+             // Отключаем прыжок, если активно лазание по лестнице, чтобы избежать конфликтов
+             keys.touchJump = false; 
         }
     }, { passive: false });
 
@@ -1056,13 +1063,13 @@
         if (currentScreen !== 'game') return;
 
         // При отпускании любого пальца сбрасываем все флаги тач-управления
-        keys.touchLeft = false;
-        keys.touchRight = false;
-        keys.touchJump = false;
-        keys.touchUp = false;
-        keys.touchDown = false;
-        
-        // Мы не сбрасываем флаги клавиатуры здесь!
+        if (e.touches.length === 0) {
+             keys.touchLeft = false;
+             keys.touchRight = false;
+             keys.touchJump = false; // КРИТИЧНО: сброс прыжка
+             keys.touchUp = false;
+             keys.touchDown = false;
+        }
     });
 
 
