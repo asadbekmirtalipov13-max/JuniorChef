@@ -183,6 +183,33 @@
         .settings-control-group {
              max-width: 350px;
         }
+        
+        /* НОВЫЕ СТИЛИ ДЛЯ ПРОЗРАЧНЫХ КНОПОК */
+        #touch-controls {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            max-width: 450px;
+            height: 120px; /* Высота зоны управления */
+            z-index: 100;
+            display: none; /* Скрыты по умолчанию */
+            justify-content: space-between;
+            pointer-events: none; /* Позволяет кликать сквозь контейнер, только на кнопки */
+        }
+        .control-area {
+            height: 100%;
+            opacity: 0.1; /* Прозрачные */
+            background-color: black;
+            pointer-events: auto; /* Позволяет кликать на сами кнопки */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: 700;
+        }
+        #control-left { width: 30%; }
+        #control-jump { width: 40%; }
+        #control-right { width: 30%; }
     </style>
 </head>
 <body>
@@ -241,8 +268,20 @@
         
         <!-- Canvas для Платформера -->
         <canvas id="gameCanvas"></canvas>
+        
+        <!-- НОВЫЕ ПРОЗРАЧНЫЕ КНОПКИ УПРАВЛЕНИЯ -->
+        <div id="touch-controls">
+            <div id="control-left" class="control-area">
+                &larr;
+            </div>
+            <div id="control-jump" class="control-area">
+                ПРЫЖОК
+            </div>
+            <div id="control-right" class="control-area">
+                &rarr;
+            </div>
+        </div>
 
-        <!-- Mobile Controls: УДАЛЕНЫ -->
     </div>
     
     <!-- 4. SKINS SCREEN (Заглушка) -->
@@ -430,6 +469,10 @@
             stopConfetti();
         }
         manageMusic(name);
+        
+        // Управление видимостью кнопок управления
+        const touchControls = document.getElementById('touch-controls');
+        touchControls.style.display = name === 'game' ? 'flex' : 'none';
         
         // Запускаем/останавливаем логику игры
         if (name === 'game') {
@@ -792,9 +835,7 @@
             player.vy = -player.jumpPower;
             player.onGround = false;
             
-            // Сбрасываем флаги прыжка СРАЗУ ПОСЛЕ ИСПОЛЬЗОВАНИЯ
-            keys.jump = false; 
-            keys.touchJump = false;
+            // Флаги сбросятся в keyup/touchend, что обеспечивает однократный прыжок
         }
         
         // 4. Физика: Гравитация и Движение
@@ -1019,57 +1060,49 @@
     
     // --- INPUT HANDLERS (Сенсорное управление) ---
 
-    canvas.addEventListener('touchstart', (e) => {
-        if (currentScreen !== 'game' || e.touches.length === 0) return;
-        
-        const rect = canvas.getBoundingClientRect();
-        const touchX = e.touches[0].clientX - rect.left;
-        const touchY = e.touches[0].clientY - rect.top;
-        
-        const centerLine = canvas.width / 2;
+    const controlLeft = document.getElementById('control-left');
+    const controlRight = document.getElementById('control-right');
+    const controlJump = document.getElementById('control-jump');
+    
+    // Лево
+    controlLeft.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        keys.touchLeft = true;
+        // Движение вниз по лестнице
+        if (player.onLadder) keys.touchDown = true; 
+    });
+    controlLeft.addEventListener('touchend', () => {
+        keys.touchLeft = false;
+        keys.touchDown = false;
+    });
 
-        e.preventDefault(); 
+    // Право
+    controlRight.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        keys.touchRight = true;
+        // Движение вниз по лестнице
+        if (player.onLadder) keys.touchDown = true; 
+    });
+    controlRight.addEventListener('touchend', () => {
+        keys.touchRight = false;
+        keys.touchDown = false;
+    });
+
+    // Прыжок/Вверх по лестнице
+    controlJump.addEventListener('touchstart', (e) => {
+        e.preventDefault();
         
-        // Сброс флагов тач-управления при старте нового касания
-        keys.touchLeft = keys.touchRight = keys.touchJump = keys.touchUp = keys.touchDown = false;
+        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Установка флага прыжка
+        keys.touchJump = true;
         
-        // 1. Прыжок (КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Прыжок при любом касании, если на земле)
-        if (player.onGround && !player.onLadder) {
-            keys.touchJump = true; // Мгновенный прыжок
-        } 
-        
-        // 2. Движение влево
-        if (touchX < centerLine) {
-            keys.touchLeft = true;
-        } 
-        // 3. Движение вправо
-        else {
-            keys.touchRight = true;
-        }
-        
-        // 4. Движение по лестнице
         if (player.onLadder) {
-             if (touchY < canvas.height * 0.5) {
-                 keys.touchUp = true;
-             } else if (touchY > canvas.height * 0.7) {
-                 keys.touchDown = true;
-             }
-             // Отключаем прыжок, если активно лазание по лестнице, чтобы избежать конфликтов
-             keys.touchJump = false; 
+             keys.touchUp = true; // Нажатие - поднимаемся по лестнице
+             keys.touchJump = false; // Отключаем прыжок, если активно лазание
         }
-    }, { passive: false });
-
-    canvas.addEventListener('touchend', (e) => {
-        if (currentScreen !== 'game') return;
-
-        // При отпускании любого пальца сбрасываем все флаги тач-управления
-        if (e.touches.length === 0) {
-             keys.touchLeft = false;
-             keys.touchRight = false;
-             keys.touchJump = false; // КРИТИЧНО: сброс прыжка
-             keys.touchUp = false;
-             keys.touchDown = false;
-        }
+    });
+    controlJump.addEventListener('touchend', () => {
+        keys.touchJump = false;
+        keys.touchUp = false;
     });
 
 
