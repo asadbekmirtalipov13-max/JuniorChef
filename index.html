@@ -27,7 +27,7 @@
             display: flex;
             flex-direction: column;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            border-radius: 1 lysates;
+            border-radius: 1px;
             overflow: hidden;
             position: relative;
         }
@@ -145,7 +145,7 @@
             flex-grow: 1;
         }
 
-        /* Confetti Styles (new) */
+        /* Confetti Styles */
         #confetti-container {
             position: absolute;
             top: 0;
@@ -182,7 +182,7 @@
              max-width: 350px;
         }
         
-        /* НОВЫЕ СТИЛИ ДЛЯ ПРОЗРАЧНЫХ КНОПОК */
+        /* СТИЛИ ДЛЯ ПРОЗРАЧНЫХ КНОПОК */
         #touch-controls {
             position: absolute;
             bottom: 0;
@@ -248,7 +248,7 @@
         <button id="settingsButton" class="menu-button bg-cyan-500 text-white hover:bg-cyan-600">
             НАСТРОЙКИ
         </button>
-        <p class="text-sm text-gray-600 mt-4">Версия: v0.2 (Physics Fix)</p>
+        <p class="text-sm text-gray-600 mt-4">Версия: v0.3 (Textures Update)</p>
     </div>
 
     <div id="game-view" class="game-screen">
@@ -343,7 +343,7 @@
 
 <script type="module">
     // ===============================================
-    // 1. FIREBASE & AUTH SETUP (ЗНАЧИТЕЛЬНО УПРОЩЕНО)
+    // 1. FIREBASE & AUTH SETUP (MOCK)
     // ===============================================
     
     let userId = null;
@@ -505,7 +505,7 @@
         }
     }
 
-    // --- CONFETTI LOGIC (ИСПРАВЛЕНО) ---
+    // --- CONFETTI LOGIC ---
     const confettiContainer = document.getElementById('confetti-container');
     const CONFETTI_COLORS = ['#FFC0CB', '#FFD700', '#ADD8E6', '#90EE90', '#FFA07A'];
     let confettiInterval = null;
@@ -557,20 +557,56 @@
         confettiContainer.innerHTML = '';
     }
 
-    // --- ASSET LOADING (Simplified to just check auth status) ---
-    function loadAssets() {
-        // Имитация загрузки ресурсов
-        const INGREDIENT_TYPES = ['база', 'ваниль', 'шоколад', 'глазурь', 'вишня'];
-        const totalAssets = INGREDIENT_TYPES.length;
-        const introMessage = document.getElementById('splashMessage');
+    // --- ASSET LOADING (TEXTURES UPDATED) ---
+    
+    // Ссылки на текстуры лестниц
+    const ladderURLs = [
+        "https://i.ibb.co/R4H001bQ/photo-2025-12-03-22-08-00.jpg", // Long
+        "https://i.ibb.co/VchQ2X3z/photo-2025-12-03-22-07-59.jpg", // Short
+        "https://i.ibb.co/k2XNgqxT/photo-2025-12-03-22-07-58.jpg", // Left
+        "https://i.ibb.co/S7wPHMJY/photo-2025-12-03-22-07-57.jpg"  // Right
+    ];
+    const ladderImages = [];
 
-        // Имитация загрузки
+    function loadAssets() {
+        const introMessage = document.getElementById('splashMessage');
         let loadedCount = 0;
-        const interval = setInterval(() => {
+        
+        // "Фейковые" ассеты для полосы загрузки + реальные картинки
+        const FAKE_ASSETS_COUNT = 5; 
+        const totalAssets = FAKE_ASSETS_COUNT + ladderURLs.length;
+
+        // 1. Загрузка изображений лестниц
+        ladderURLs.forEach(url => {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.src = url;
+            img.onload = () => {
+                loadedCount++;
+                checkLoad();
+            };
+            img.onerror = () => {
+                console.error("Failed to load image:", url);
+                loadedCount++; // Считаем загруженным даже если ошибка, чтобы игра не зависла
+                checkLoad();
+            };
+            ladderImages.push(img);
+        });
+
+        // 2. Имитация загрузки остальных ресурсов
+        let fakeLoaded = 0;
+        const fakeInterval = setInterval(() => {
+            fakeLoaded++;
             loadedCount++;
+            checkLoad();
+            if (fakeLoaded >= FAKE_ASSETS_COUNT) {
+                clearInterval(fakeInterval);
+            }
+        }, 150);
+
+        function checkLoad() {
             introMessage.textContent = `Загрузка ресурсов: ${loadedCount}/${totalAssets}`;
             if (loadedCount >= totalAssets) {
-                clearInterval(interval);
                 assetsLoaded = true;
                 introMessage.textContent = 'Нажмите, чтобы начать...'; 
                 introMessage.style.visibility = 'visible';
@@ -578,7 +614,7 @@
                 screens.intro.addEventListener('click', startSplashTransition);
                 document.addEventListener('keydown', handleSplashKeydown);
             }
-        }, 100);
+        }
     }
 
     // Menu Button Handlers
@@ -606,7 +642,7 @@
 
 
     // ===============================================
-    // 3. GAME LOGIC (Platformer - НОВАЯ МЕХАНИКА)
+    // 3. GAME LOGIC (Platformer)
     // ===============================================
 
     const canvas = document.getElementById('gameCanvas');
@@ -641,27 +677,27 @@
         y: 0,
         width: 20,
         height: 20,
-        color: '#ff6666', // Красный квадрат (пока)
-        // TODO: Добавить textureUrl: '...' для персонажа
+        color: '#ff6666', 
         vy: 0, 
         vx: 0, 
         onGround: false,
         onLadder: false,
         speed: 4,
-        jumpPower: 12, // Макс прыжок: ~144px
+        jumpPower: 12, 
         gravity: 0.5,
         baseJumpPower: 12 
     };
 
     // -- ИГРОВОЙ МИР --
-    const COLORS = ['#FFC0CB', '#FFD700', '#ADD8E6', '#90EE90', '#FFA07A']; // Pink, Gold, Blue, Green, Salmon
+    const COLORS = ['#FFC0CB', '#FFD700', '#ADD8E6', '#90EE90', '#FFA07A']; 
 
-    let platforms = []; // Торты (прямоугольники)
-    let ladders = []; // Лестницы
-    let enemies = []; // Враждебные персонажи (красные точки)
-    let coins = []; // Монетки
-    let trampolines = []; // Батуты
+    let platforms = []; 
+    let ladders = []; 
+    let enemies = []; 
+    let coins = []; 
+    let trampolines = []; 
     let scrollSpeed = 0; 
+    const LADDER_WIDTH = 30; // Увеличена ширина лестницы для текстур
 
     // -- УПРАВЛЕНИЕ --
     const keys = {
@@ -677,6 +713,13 @@
         touchDown: false,
     };
 
+    function getRandomLadderTexture() {
+        if (ladderImages.length > 0) {
+            return ladderImages[Math.floor(Math.random() * ladderImages.length)];
+        }
+        return null;
+    }
+
     // --- ИНИЦИАЛИЗАЦИЯ МИРА ---
 
     function createWorld() {
@@ -691,9 +734,22 @@
             { x: 100, y: canvas.height - 350, w: 150, h: 30, color: COLORS[3] }
         ];
 
+        // Генерируем текстуры для начальных лестниц
         ladders = [
-            { x: 80, y: canvas.height - 120, w: 15, h: 100, color: '#a0522d' },
-            { x: canvas.width - 80, y: canvas.height - 220, w: 15, h: 100, color: '#a0522d' }
+            { 
+                x: 80, 
+                y: canvas.height - 120, 
+                w: LADDER_WIDTH, 
+                h: 100, 
+                img: getRandomLadderTexture() 
+            },
+            { 
+                x: canvas.width - 80, 
+                y: canvas.height - 220, 
+                w: LADDER_WIDTH, 
+                h: 100, 
+                img: getRandomLadderTexture() 
+            }
         ];
         
         enemies = [
@@ -741,18 +797,13 @@
         showScreen('gameOver');
     }
     
-    // --- ГЕНЕРАЦИЯ БЕСКОНЕЧНОГО МИРА (ИСПРАВЛЕНИЯ ТУТ) ---
+    // --- ГЕНЕРАЦИЯ БЕСКОНЕЧНОГО МИРА ---
 
     function generateNewPlatforms(offsetY) {
-        // ИСПРАВЛЕНИЕ 1: Уменьшаем расстояние между платформами.
-        // Макс высота прыжка ~144px. Раньше было 150.
-        // Теперь генерируем отступ от 80 до 110 пикселей.
         const gap = Math.floor(Math.random() * 30) + 80;
         const newPlatformY = offsetY - gap; 
         
-        // Ширина и позиция платформы
         const pWidth = Math.random() * 80 + 80;
-        // Ограничиваем X, чтобы не вылезать за пределы
         const pX = Math.random() * (canvas.width - pWidth);
 
         const currentPlatform = {
@@ -764,28 +815,25 @@
         };
         platforms.push(currentPlatform);
         
-        // Лестница (шанс 30%) - привязываем к центру платформы
+        // Лестница (шанс 30%)
         if (Math.random() < 0.3) {
             ladders.push({
-                x: currentPlatform.x + currentPlatform.w / 2 - 7.5, 
+                x: currentPlatform.x + currentPlatform.w / 2 - (LADDER_WIDTH / 2), // Центрируем с учетом ширины 30
                 y: currentPlatform.y,
-                w: 15,
-                h: 100, // Высота может быть меньше, если gap маленький, но 100 ок
-                color: '#a0522d'
+                w: LADDER_WIDTH,
+                h: 100, 
+                img: getRandomLadderTexture() // Назначаем случайную текстуру
             });
         }
         
-        // ИСПРАВЛЕНИЕ 2: Батут (шанс 20%)
-        // Спавним его НА ПОВЕРХНОСТИ только что созданной платформы.
-        // Больше никаких случайных X под землей.
+        // Батут (шанс 20%)
         if (Math.random() < 0.2) {
              const trampWidth = 40;
-             // Считаем X так, чтобы батут был полностью на платформе
              const trampX = currentPlatform.x + Math.random() * (currentPlatform.w - trampWidth);
              
              trampolines.push({
                 x: trampX,
-                y: currentPlatform.y - 10, // -10 т.к. высота батута 10, ставим сверху
+                y: currentPlatform.y - 10, 
                 w: trampWidth,
                 h: 10,
                 color: '#00ffff',
@@ -815,7 +863,7 @@
         const shouldClimbUp = keys.up || keys.touchUp;
         const shouldClimbDown = keys.down || keys.touchDown;
 
-        // Логика прыжка (исправленная ранее)
+        // Логика прыжка
         if (shouldJump && player.onGround) {
             player.vy = -player.jumpPower;
             player.onGround = false; 
@@ -870,6 +918,7 @@
         // Лестницы
         let touchingLadder = false;
         for (const ladder of ladders) {
+             // Проверка коллизии с более широкой лестницей
              if (player.x + player.width > ladder.x && 
                  player.x < ladder.x + ladder.w && 
                  player.y + player.height > ladder.y && 
@@ -934,8 +983,6 @@
 
         // 1. Рисуем Платформы (Торты)
         for (const p of platforms) {
-            // TODO: Заменить fillStyle на drawImage, когда будут текстуры
-            // if (p.texture) ctx.drawImage(...)
             ctx.fillStyle = p.color;
             ctx.fillRect(p.x, p.y, p.w, p.h);
             ctx.fillStyle = '#333';
@@ -943,10 +990,16 @@
             ctx.fillText("Торт", p.x + 5, p.y + p.h / 2 + 4);
         }
 
-        // 2. Рисуем Лестницы
+        // 2. Рисуем Лестницы (с текстурами)
         for (const l of ladders) {
-            ctx.fillStyle = l.color;
-            ctx.fillRect(l.x, l.y, l.w, l.h);
+            if (l.img && l.img.complete) {
+                // Рисуем текстуру
+                ctx.drawImage(l.img, l.x, l.y, l.w, l.h);
+            } else {
+                // Резервный вариант, если картинка не загрузилась
+                ctx.fillStyle = '#8B4513'; // SaddleBrown
+                ctx.fillRect(l.x, l.y, l.w, l.h);
+            }
         }
         
         // 3. Рисуем Батуты
@@ -965,7 +1018,6 @@
         }
         
         // 5. Рисуем Персонажа
-        // TODO: Если есть player.texture, рисовать картинку
         ctx.fillStyle = player.color;
         ctx.fillRect(player.x, player.y, player.width, player.height);
         
