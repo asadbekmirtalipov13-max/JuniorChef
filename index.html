@@ -248,7 +248,7 @@
         <button id="settingsButton" class="menu-button bg-cyan-500 text-white hover:bg-cyan-600">
             НАСТРОЙКИ
         </button>
-        <p class="text-sm text-gray-600 mt-4">Версия: v0.1</p>
+        <p class="text-sm text-gray-600 mt-4">Версия: v0.2 (Physics Fix)</p>
     </div>
 
     <div id="game-view" class="game-screen">
@@ -642,12 +642,13 @@
         width: 20,
         height: 20,
         color: '#ff6666', // Красный квадрат (пока)
-        vy: 0, // Скорость по Y (гравитация/прыжок)
-        vx: 0, // Скорость по X
+        // TODO: Добавить textureUrl: '...' для персонажа
+        vy: 0, 
+        vx: 0, 
         onGround: false,
         onLadder: false,
         speed: 4,
-        jumpPower: 12,
+        jumpPower: 12, // Макс прыжок: ~144px
         gravity: 0.5,
         baseJumpPower: 12 
     };
@@ -659,8 +660,8 @@
     let ladders = []; // Лестницы
     let enemies = []; // Враждебные персонажи (красные точки)
     let coins = []; // Монетки
-    let trampolines = []; // Батуты (новое)
-    let scrollSpeed = 0; // Скорость сдвига мира вниз
+    let trampolines = []; // Батуты
+    let scrollSpeed = 0; 
 
     // -- УПРАВЛЕНИЕ --
     const keys = {
@@ -669,13 +670,11 @@
         jump: false,
         up: false,
         down: false,
-        // Флаг для управления через тач
         touchLeft: false,
         touchRight: false,
         touchJump: false,
         touchUp: false,
         touchDown: false,
-        
     };
 
     // --- ИНИЦИАЛИЗАЦИЯ МИРА ---
@@ -693,24 +692,19 @@
         ];
 
         ladders = [
-            // Лестница 1
             { x: 80, y: canvas.height - 120, w: 15, h: 100, color: '#a0522d' },
-            // Лестница 2
             { x: canvas.width - 80, y: canvas.height - 220, w: 15, h: 100, color: '#a0522d' }
         ];
         
         enemies = [
-             // Враг 1 (движется по нижней платформе)
              { x: 200, y: platforms[0].y - 10, w: 10, h: 10, color: '#ff0000', vx: 1 }
         ];
 
         trampolines = [
-             // Батут 1
             { x: 180, y: canvas.height - 60, w: 40, h: 10, color: '#00ffff', jumpBoost: 1.8 }
         ];
 
         player.x = 50;
-        // Персонаж стартует на нижней платформе
         player.y = platforms[0].y - player.height;
         player.vy = 0;
         player.onGround = true;
@@ -728,16 +722,15 @@
         isGameRunning = true;
         scrollSpeed = 0;
         
-        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ БАГА "ПРИЗРАК": Сброс всех флагов управления
+        // Сброс флагов управления
         keys.left = keys.right = keys.jump = keys.up = keys.down = false;
         keys.touchLeft = keys.touchRight = keys.touchJump = keys.touchUp = keys.touchDown = false;
         
         createWorld();
-        // ВАЖНОЕ ИСПРАВЛЕНИЕ VERCEL: Добавляем задержку перед resize, чтобы DOM обновился
         setTimeout(() => {
              resizeCanvas(); 
              gameLoopRef = requestAnimationFrame(gameLoop);
-        }, 50); // Небольшая задержка
+        }, 50); 
     }
 
     function gameOver() {
@@ -748,38 +741,52 @@
         showScreen('gameOver');
     }
     
-    // --- ГЕНЕРАЦИЯ БЕСКОНЕЧНОГО МИРА ---
+    // --- ГЕНЕРАЦИЯ БЕСКОНЕЧНОГО МИРА (ИСПРАВЛЕНИЯ ТУТ) ---
 
     function generateNewPlatforms(offsetY) {
-        const newPlatformY = offsetY - 150; 
+        // ИСПРАВЛЕНИЕ 1: Уменьшаем расстояние между платформами.
+        // Макс высота прыжка ~144px. Раньше было 150.
+        // Теперь генерируем отступ от 80 до 110 пикселей.
+        const gap = Math.floor(Math.random() * 30) + 80;
+        const newPlatformY = offsetY - gap; 
+        
+        // Ширина и позиция платформы
+        const pWidth = Math.random() * 80 + 80;
+        // Ограничиваем X, чтобы не вылезать за пределы
+        const pX = Math.random() * (canvas.width - pWidth);
 
-        // Платформа (торт)
-        platforms.push({
-            x: Math.random() * (canvas.width - 150) + 50, 
+        const currentPlatform = {
+            x: pX, 
             y: newPlatformY, 
-            w: Math.random() * 80 + 80, 
+            w: pWidth, 
             h: 30, 
             color: COLORS[Math.floor(Math.random() * COLORS.length)] 
-        });
+        };
+        platforms.push(currentPlatform);
         
-        // Лестница (шанс 30%)
+        // Лестница (шанс 30%) - привязываем к центру платформы
         if (Math.random() < 0.3) {
-            const lastP = platforms[platforms.length - 1];
             ladders.push({
-                x: lastP.x + lastP.w / 2 - 7.5, // Центр платформы
-                y: lastP.y,
+                x: currentPlatform.x + currentPlatform.w / 2 - 7.5, 
+                y: currentPlatform.y,
                 w: 15,
-                h: 100,
+                h: 100, // Высота может быть меньше, если gap маленький, но 100 ок
                 color: '#a0522d'
             });
         }
         
-        // Батут (шанс 20%)
+        // ИСПРАВЛЕНИЕ 2: Батут (шанс 20%)
+        // Спавним его НА ПОВЕРХНОСТИ только что созданной платформы.
+        // Больше никаких случайных X под землей.
         if (Math.random() < 0.2) {
+             const trampWidth = 40;
+             // Считаем X так, чтобы батут был полностью на платформе
+             const trampX = currentPlatform.x + Math.random() * (currentPlatform.w - trampWidth);
+             
              trampolines.push({
-                x: Math.random() * (canvas.width - 60) + 30,
-                y: newPlatformY + 30, // Снизу платформы или отдельно
-                w: 40,
+                x: trampX,
+                y: currentPlatform.y - 10, // -10 т.к. высота батута 10, ставим сверху
+                w: trampWidth,
                 h: 10,
                 color: '#00ffff',
                 jumpBoost: 1.8
@@ -793,11 +800,9 @@
     function update() {
         if (!isGameRunning) return;
 
-        // 1. Сброс состояния
-        // ИСПРАВЛЕНИЕ: Мы больше не сбрасываем onGround здесь, чтобы сохранить его для проверки прыжка
         player.onLadder = false;
 
-        // 2. Управление движением (Объединяем клавиатуру и тач)
+        // Движение
         player.vx = 0;
         const moveLeft = keys.left || keys.touchLeft;
         const moveRight = keys.right || keys.touchRight;
@@ -805,20 +810,18 @@
         if (moveLeft) player.vx = -player.speed;
         if (moveRight) player.vx = player.speed;
 
-        // 3. Прыжок/Вверх (Объединяем)
+        // Прыжок
         const shouldJump = keys.jump || keys.touchJump;
         const shouldClimbUp = keys.up || keys.touchUp;
         const shouldClimbDown = keys.down || keys.touchDown;
 
-        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ ЛОГИКИ ПРЫЖКА
-        // Теперь мы проверяем прыжок ДО того, как сбросили флаг onGround.
-        // Это позволяет персонажу прыгнуть, если он стоял на земле в прошлом кадре.
+        // Логика прыжка (исправленная ранее)
         if (shouldJump && player.onGround) {
             player.vy = -player.jumpPower;
-            player.onGround = false; // Теперь мы в воздухе
+            player.onGround = false; 
         }
         
-        // 4. Физика: Гравитация и Движение
+        // Физика
         if (!player.onLadder) {
             player.vy += player.gravity;
             player.y += player.vy;
@@ -826,43 +829,37 @@
 
         player.x += player.vx;
         
-        // 5. ВЕРТИКАЛЬНЫЙ СКРОЛЛ (Бесконечное восхождение)
-        const scrollThreshold = canvas.height * 0.4; // 40% от верха экрана
+        // Скролл вверх
+        const scrollThreshold = canvas.height * 0.4; 
 
         if (player.y < scrollThreshold) {
-            // Игрок поднимается выше центра, сдвигаем мир вниз
             const scrollAmount = scrollThreshold - player.y;
             player.y = scrollThreshold;
             
-            // Сдвигаем все объекты вниз
             platforms.forEach(p => p.y += scrollAmount);
             ladders.forEach(l => l.y += scrollAmount);
             enemies.forEach(e => e.y += scrollAmount);
             trampolines.forEach(t => t.y += scrollAmount);
-            // score++; // Увеличиваем счет за восхождение
+            score++; 
         }
 
-        // ГЕНЕРАЦИЯ: Если самая высокая платформа (самая нижняя координата Y) находится ниже нуля, генерируем новые
+        // Генерация новых платформ
         if (platforms.length > 0 && platforms[platforms.length - 1].y > -50) {
             generateNewPlatforms(platforms[platforms.length - 1].y);
         }
-        // Удаление старых платформ, которые ушли за нижний край
         platforms = platforms.filter(p => p.y < canvas.height + 50);
 
 
-        // 6. ОБНАРУЖЕНИЕ СТОЛКНОВЕНИЙ
-        
-        // ВАЖНО: Сбрасываем флаг onGround здесь, ПЕРЕД проверкой коллизий
+        // Коллизии
         player.onGround = false;
 
-        // Столкновение с Платформами (торты)
+        // Торты
         for (const platform of platforms) {
-            // Проверка, не столкнулся ли игрок с платформой снизу
             if (player.y + player.height > platform.y && 
-                player.y < platform.y && // Игрок падает сверху
+                player.y < platform.y && 
                 player.x + player.width > platform.x && 
                 player.x < platform.x + platform.w &&
-                player.vy >= 0) // Только если движется вниз
+                player.vy >= 0) 
             {
                 player.y = platform.y - player.height;
                 player.vy = 0;
@@ -870,7 +867,7 @@
             }
         }
         
-        // Столкновение с Лестницами
+        // Лестницы
         let touchingLadder = false;
         for (const ladder of ladders) {
              if (player.x + player.width > ladder.x && 
@@ -883,53 +880,48 @@
         }
         player.onLadder = touchingLadder;
         
-        // Управление на Лестнице
         if (player.onLadder) {
-             player.vy = 0; // Отключаем гравитацию на лестнице
-             if (shouldClimbUp) { // Используем объединенный флаг
+             player.vy = 0; 
+             if (shouldClimbUp) { 
                  player.y -= player.speed / 2;
-             } else if (shouldClimbDown) { // Используем объединенный флаг
+             } else if (shouldClimbDown) { 
                  player.y += player.speed / 2;
              }
         } 
         
-        // Столкновение с Батутами (новое)
+        // Батуты
         for (const tramp of trampolines) {
              if (player.y + player.height > tramp.y &&
                  player.y < tramp.y &&
                  player.x + player.width > tramp.x &&
                  player.x < tramp.x + tramp.w &&
                  player.vy >= 0) {
-                 // Батут! Увеличиваем силу прыжка
                  player.vy = -(player.jumpPower * tramp.jumpBoost);
              }
         }
         
-        // 7. Столкновение с Врагами (красные точки)
+        // Враги
         for (const enemy of enemies) {
              if (player.x < enemy.x + enemy.w &&
                  player.x + player.width > enemy.x &&
                  player.y < enemy.y + enemy.h &&
                  player.y + player.height > enemy.y) {
-                 // Враг! Game Over.
                  gameOver();
                  return;
              }
         }
         
-        // 8. Смерть от падения (на дно экрана)
+        // Смерть от падения
         if (player.y > canvas.height + 50) {
             gameOver();
         }
         
-        // 9. Движение врагов (простейшее)
+        // Движение врагов
         for (const enemy of enemies) {
             enemy.x += enemy.vx;
-            // Простая смена направления при столкновении с границами платформы (пока не реализовано)
         }
 
-
-        // 10. Ограничение движения по горизонтали
+        // Границы экрана
         if (player.x < 0) player.x = 0;
         if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
     }
@@ -942,6 +934,8 @@
 
         // 1. Рисуем Платформы (Торты)
         for (const p of platforms) {
+            // TODO: Заменить fillStyle на drawImage, когда будут текстуры
+            // if (p.texture) ctx.drawImage(...)
             ctx.fillStyle = p.color;
             ctx.fillRect(p.x, p.y, p.w, p.h);
             ctx.fillStyle = '#333';
@@ -964,17 +958,17 @@
              ctx.fillText("Батут", t.x + 5, t.y + t.h / 2 + 4);
         }
 
-        // 4. Рисуем Врагов (Красные точки)
+        // 4. Рисуем Врагов
         for (const e of enemies) {
             ctx.fillStyle = e.color;
             ctx.fillRect(e.x, e.y, e.w, e.h);
         }
         
         // 5. Рисуем Персонажа
+        // TODO: Если есть player.texture, рисовать картинку
         ctx.fillStyle = player.color;
         ctx.fillRect(player.x, player.y, player.width, player.height);
         
-        // Обновляем счет
         scoreDisplay.textContent = score;
         highScoreDisplay.textContent = highScore;
     }
@@ -1007,11 +1001,11 @@
             case 'w':
             case ' ':
                 keys.jump = true;
-                keys.up = true; // Для лестниц
+                keys.up = true; 
                 break;
             case 'ArrowDown':
             case 's':
-                 keys.down = true; // Для лестниц
+                 keys.down = true; 
                  break;
         }
     });
@@ -1051,7 +1045,6 @@
     controlLeft.addEventListener('touchstart', (e) => {
         e.preventDefault();
         keys.touchLeft = true;
-        // Движение вниз по лестнице
         if (player.onLadder) keys.touchDown = true; 
     });
     controlLeft.addEventListener('touchend', () => {
@@ -1063,7 +1056,6 @@
     controlRight.addEventListener('touchstart', (e) => {
         e.preventDefault();
         keys.touchRight = true;
-        // Движение вниз по лестнице
         if (player.onLadder) keys.touchDown = true; 
     });
     controlRight.addEventListener('touchend', () => {
@@ -1071,16 +1063,13 @@
         keys.touchDown = false;
     });
 
-    // Прыжок/Вверх по лестнице
+    // Прыжок/Вверх
     controlJump.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        
-        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Установка флага прыжка
         keys.touchJump = true;
-        
         if (player.onLadder) {
-             keys.touchUp = true; // Нажатие - поднимаемся по лестнице
-             keys.touchJump = false; // Отключаем прыжок, если активно лазание
+             keys.touchUp = true; 
+             keys.touchJump = false; 
         }
     });
     controlJump.addEventListener('touchend', () => {
@@ -1089,7 +1078,7 @@
     });
 
 
-    // Ensure the first screen is shown on load and start asset loading
+    // Start
     window.onload = function () {
         loadAssets(); 
         showScreen('intro');
